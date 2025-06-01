@@ -1,0 +1,78 @@
+.notice-container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 90px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .dashboard-title {
+    font-size: 32px;
+    font-weight: bold;
+    color: #1d2278;
+    margin-bottom: 60px;
+  }
+  
+  .filter-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .filter-btn {
+    background: #e0e0e0;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .filter-btn.active {
+    background: #007bff;
+    color: white;
+  }
+  
+  .notices-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 30px;
+  }
+  
+  .notice-card {
+    background: rgb(197, 222, 251);
+    border-radius: 10px;
+    padding: 40px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .notice-card h3 {
+    font-size: 22px;
+    color: #333;
+  }
+  
+  .notice-card p {
+    font-size: 15px;
+    color: #666;
+    margin: 10px 0;
+  }
+  
+  .notice-type {
+    display: inline-block;
+    padding: 10px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  
+  .notice-type.notice {
+    background: #007bff;
+    color: white;
+  }
+  
+  .notice-type.announcement {
+    background: #6c757d;
+    color: white;
+  }
+  
+  
+  
