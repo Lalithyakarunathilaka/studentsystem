@@ -7,10 +7,11 @@ const RegisterPage = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "", // New state for role selection
-    gender: "", // Added gender to formData
+    grade: "", // 👈 was missing before
+    role: "",
+    gender: "",
   });
-
+  
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -86,18 +87,28 @@ const RegisterPage = () => {
               />
             </div>
 
-            {/* Confirm Password */}
+            {/* Grade Selector */}
             <div className="form-group">
-              <label htmlFor="confirmPassword">Grade:</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
+              <label htmlFor="grade">Grade:</label>
+              <select
+                id="grade"
+                name="grade"
+                value={formData.grade}
                 onChange={handleChange}
-                placeholder="Enter Your Grade"
                 required
-              />
+              >
+                <option value="">Select Grade</option>
+                {[...Array(13)].flatMap((_, i) =>
+                  ["A", "B", "C"].map((section) => {
+                    const gradeLabel = `${i + 1}-${section}`;
+                    return (
+                      <option key={gradeLabel} value={gradeLabel}>
+                        {gradeLabel}
+                      </option>
+                    );
+                  })
+                )}
+              </select>
             </div>
 
             {/* Gender Selection */}
@@ -106,10 +117,13 @@ const RegisterPage = () => {
               <div className="gender-selection">
                 <label>
                   <input
-                    type="radio" name="gender" value="Male"
+                    type="radio"
+                    name="gender"
+                    value="Male"
                     checked={formData.gender === "Male"}
                     onChange={handleChange}
-                  /> Male
+                  />{" "}
+                  Male
                 </label>
                 <label>
                   <input

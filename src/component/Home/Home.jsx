@@ -23,13 +23,14 @@ const Home = () => {
     <div>
       {/* Navbar */}
       <nav className="navbar">
-        <button className="nav-btn">Home</button>
-        <div className="nav-buttons">
-          <button className="nav-btn">Sign In</button>
-          <button className="nav-btn" onClick={() => navigate("/register/student")}>Register as Student</button>
-          <button className="nav-btn" onClick={() => navigate("/register/teacher")}>Register as Teacher</button>
-        </div>
-      </nav>
+  <button className="nav-btn">Home</button>
+  <div className="nav-buttons">
+    <button className="nav-btn" onClick={() => navigate("/choose-user")}>Sign In</button>
+    <button className="nav-btn" onClick={() => navigate("/admin-register")}>Sign Up</button>
+    {/* <button className="nav-btn" onClick={() => navigate("/register/student")}>Register as Student</button> */}
+  </div>
+</nav>
+
 
       {/* Hero Section */}
       <section className="hero">
