@@ -1,0 +1,33 @@
+.register-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+  }
+  
+  .register-left {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    background-color: #ffffff;
+  }
+  
+  .register-right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0efff;
+  }
+  
+  .register-form {
+    width: 100%;
+    max-width: 420px;
+  }
+  
+  .admin-image {
+    max-width: 80%;
+    height: auto;
+  }
+  
