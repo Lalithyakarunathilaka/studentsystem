@@ -30,17 +30,41 @@ const AdminLoginPage = () => {
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
     setSubmitted(true);
-
-    setTimeout(() => {
-      alert("Admin logged in successfully!");
-      navigate("/admin/dashboard");
-    }, 1500);
+  
+    try {
+      const response = await fetch("http://localhost:5001/api/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert("Admin logged in successfully!");
+        // Save JWT token for later use (optional)
+        localStorage.setItem("adminToken", data.token);
+        navigate("/admin/dashboard");
+      } else {
+        alert(data.error || "Login failed");
+      }
+    } catch (error) {
+      alert("Error connecting to server. Please try again later.");
+      console.error("Login error:", error);
+    } finally {
+      setSubmitted(false);
+    }
   };
-
+  
   return (
     <div className="admin-register-page d-flex flex-row min-vh-100">
       {/* Left Side - Form */}

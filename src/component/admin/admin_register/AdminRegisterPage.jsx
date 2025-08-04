@@ -39,7 +39,7 @@ const AdminRegisterPage = () => {
 
     setTimeout(() => {
       alert("Admin registered successfully!");
-      navigate("/login");
+      navigate("/admin-login");
     }, 1500);
   };
 
