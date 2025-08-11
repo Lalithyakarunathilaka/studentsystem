@@ -32,16 +32,40 @@ const AdminRegisterPage = () => {
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
     setSubmitted(true);
-
-    setTimeout(() => {
-      alert("Admin registered successfully!");
-      navigate("/admin-login");
-    }, 1500);
+  
+    try {
+      const response = await fetch("http://localhost:5001/api/admin-register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert("Admin registered successfully!");
+        navigate("/admin-login");
+      } else {
+        alert(data.error || "Registration failed");
+      }
+    } catch (error) {
+      alert("Error connecting to server. Please try again later.");
+      console.error("Registration error:", error);
+    } finally {
+      setSubmitted(false);
+    }
   };
+  
 
   return (
     <div className="admin-register-container">
