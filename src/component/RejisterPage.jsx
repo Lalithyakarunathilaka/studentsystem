@@ -1,64 +1,64 @@
 import React, { useState } from "react";
-import "./RegisterPage.css";
+import "./RegisterPage.css"; 
+import studentImage from "../assets/student.jpg"; 
 
-const RegisterPage = () => {
+const StudentLoginPage = () => {
   const [formData, setFormData] = useState({
-    fullName: "",
     email: "",
     password: "",
-    confirmPassword: "",
-    grade: "", // 👈 was missing before
-    role: "",
-    gender: "",
   });
-  
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
+    if (!formData.email || !formData.password) {
+      alert("Please enter both email and password.");
       return;
     }
-    if (!formData.role) {
-      alert("Please select whether you are a Teacher or a Student.");
-      return;
+  
+    try {
+      const response = await fetch("http://localhost:5001/api/student-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          email: formData.email,
+          password: formData.password
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert("Login successful!");
+        localStorage.setItem("studentToken", data.token);
+        window.location.href = "/student-dashboard";
+      } else {
+        alert(data.error || "Login failed. Please check your credentials.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Failed to connect to server. Please try again later.");
     }
-    console.log("Registration successful:", formData);
   };
+  
 
   return (
     <div className="register-container">
-      {/* Left Section */}
-      <div className="register-left">
-        <img
-          src="/images/register.jpg"
-          alt="Classroom"
-          className="background-image"
-        />
+      <div className="student-login-left">
+        <img src={studentImage} alt="Student" className="student-image" 
+        width={750} height={800}/>
       </div>
 
       {/* Right Section */}
       <div className="register-right">
         <div className="register-form">
-          <h2>Registration</h2>
+          <h2>Student Login</h2>
+          <br></br>
+          <p>Welcome! Please enter your credentials to continue.</p>
           <form onSubmit={handleSubmit}>
-            {/* Full Name */}
-            <div className="form-group">
-              <label htmlFor="fullName">Full Name:</label>
-              <input
-                type="text"
-                id="fullName"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                placeholder="Full name"
-                required
-              />
-            </div>
-
             {/* Email */}
             <div className="form-group">
               <label htmlFor="email">Email:</label>
@@ -68,7 +68,7 @@ const RegisterPage = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Email"
+                placeholder="Enter your email"
                 required
               />
             </div>
@@ -82,71 +82,21 @@ const RegisterPage = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Password"
+                placeholder="Enter your password"
                 required
               />
             </div>
 
-            {/* Grade Selector */}
-            <div className="form-group">
-              <label htmlFor="grade">Grade:</label>
-              <select
-                id="grade"
-                name="grade"
-                value={formData.grade}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select Grade</option>
-                {[...Array(13)].flatMap((_, i) =>
-                  ["A", "B", "C"].map((section) => {
-                    const gradeLabel = `${i + 1}-${section}`;
-                    return (
-                      <option key={gradeLabel} value={gradeLabel}>
-                        {gradeLabel}
-                      </option>
-                    );
-                  })
-                )}
-              </select>
-            </div>
-
-            {/* Gender Selection */}
-            <div className="form-group">
-              <label>Gender:</label>
-              <div className="gender-selection">
-                <label>
-                  <input
-                    type="radio"
-                    name="gender"
-                    value="Male"
-                    checked={formData.gender === "Male"}
-                    onChange={handleChange}
-                  />{" "}
-                  Male
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="gender"
-                    value="Female"
-                    checked={formData.gender === "Female"}
-                    onChange={handleChange}
-                  />
-                  Female
-                </label>
-              </div>
-            </div>
-
-            {/* Register Button */}
+            {/* Login Button */}
             <button type="submit" className="register-btn">
-              Register
+              Login
             </button>
           </form>
+          
         </div>
       </div>
     </div>
   );
 };
 
-export default RegisterPage;
+export default StudentLoginPage;
