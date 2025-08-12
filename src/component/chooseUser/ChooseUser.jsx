@@ -21,10 +21,10 @@ const ChooseUser = () => {
         navigate('/admin-login');
         break;
       case 'Student':
-        navigate('/student-login');
+        navigate('/register-student');
         break;
       case 'Teacher':
-        navigate('/teacher-login');
+        navigate('/register-teacher');
         break;
       default:
         break;
