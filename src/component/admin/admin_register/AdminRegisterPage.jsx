@@ -91,7 +91,7 @@ const AdminRegisterPage = () => {
               />
               <div className="invalid-feedback">{errors.name}</div>
             </div>
-            <div className="form-group">
+            {/* <div className="form-group">
               <label>School Name</label>
               <input
                 type="text"
@@ -102,7 +102,7 @@ const AdminRegisterPage = () => {
                 placeholder="Enter your school name"
               />
               <div className="invalid-feedback">{errors.name}</div>
-            </div>
+            </div> */}
             <div className="form-group">
               <label>Email</label>
               <input
