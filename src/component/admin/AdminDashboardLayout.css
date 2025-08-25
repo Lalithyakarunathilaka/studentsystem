@@ -1,0 +1,96 @@
+/* Dashboard Content Layout */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* Card Style - matches AdminDashboardLayout look */
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.stat-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  margin-top: 8px;
+  color: var(--brand);
+}
+
+.stat-change {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.stat-change.positive {
+  color: var(--green);
+}
+
+.stat-change.negative {
+  color: red;
+}
+
+/* Notices Section */
+.notices-section {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.notices-section h2 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Notices Table */
+.notices-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.notices-table th,
+.notices-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 14px;
+}
+
+.notices-table th {
+  background: rgba(37, 99, 235, 0.05);
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.notices-table tr:hover td {
+  background: rgba(37, 99, 235, 0.03);
+}
+
+.no-notices {
+  color: var(--muted);
+  font-style: italic;
+}

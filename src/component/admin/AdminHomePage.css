@@ -1,0 +1,42 @@
+.admin-home-container {
+    padding: 20px;
+  }
+  
+  .dashboard-cards {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+  }
+  
+  .dashboard-card {
+    flex: 1;
+    min-width: 200px;
+    background: #f9f9f9;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  
+  .dashboard-card img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+  }
+  
+  .dashboard-card h3 {
+    margin-top: 10px;
+    font-size: 18px;
+  }
+  
+  .dashboard-card p {
+    font-size: 20px;
+    color: green;
+    margin-top: 5px;
+  }
+  
+  .notices-section {
+    margin-top: 20px;
+  }
+  
