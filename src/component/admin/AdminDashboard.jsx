@@ -1,46 +1,50 @@
-// AdminDashboardLayout.jsx
-import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { FiMenu } from "react-icons/fi";
-import "./AdminDashboardLayout.css";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Container, Row, Col, Card } from "react-bootstrap";
 
-const AdminDashboardLayout = ({ children, title }) => {
-  const [open, setOpen] = useState(true);
+function AdminDashboard() {
+  const [stats, setStats] = useState({ users: 0, classes: 0 });
+
+  useEffect(() => {
+    axios.get("http://localhost:5001/api/admin/stats")
+      .then(res => setStats(res.data))
+      .catch(err => console.error(err));
+  }, []);
 
   return (
-    <div className={`admin-dashboard ${open ? "sidebar-open" : "sidebar-closed"}`}>
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <h2 className="logo">EduMentor</h2>
-        <nav>
-          <ul>
-            <li><NavLink to="/">Dashboard</NavLink></li>
-            <li><NavLink to="/admin/add-class">Classes</NavLink></li>
-            <li><NavLink to="/admin/user-add">Add Users</NavLink></li>
-            <li><NavLink to="/admin/add-students">Students</NavLink></li>
-            <li><NavLink to="/admin/teachers">Teachers</NavLink></li>
-            <li><NavLink to="/notice-dashboard">Notices</NavLink></li>
-          </ul>
-        </nav>
-      </aside>
+    <div style={{ minHeight: "100vh", background: "#f9f9f9" }}>
+      {/* Header */}
+      <header
+        style={{
+          backgroundColor: "rgba(0,0,0,0.1)",
+          padding: "25px 20px",
+          boxShadow: "0px 5px 5px rgba(0,0,0,0.2)",
+        }}
+      >
+        <h2 className="text-dark">Admin</h2>
+      </header>
 
-      {/* Main */}
-      <div className="main">
-        <header className="header">
-          <button className="icon-btn" onClick={() => setOpen((s) => !s)} aria-label="Toggle menu">
-            <FiMenu />
-          </button>
-          <h1>{title}</h1>
-          <div className="admin-actions">
-            <span className="badge">Admin</span>
-            <button className="logout-btn">Logout</button>
+      {/* Dashboard content */}
+      <div className="row mt-4">
+        <div className="col-md-6">
+          <div className="card text-center">
+            <div className="card-body">
+              <h5 className="card-title">Total Users</h5>
+              <p className="card-text display-6">{stats.users}</p>
+            </div>
           </div>
-        </header>
-
-        <div className="content">{children}</div>
+        </div>
+        <div className="col-md-6">
+          <div className="card text-center">
+            <div className="card-body">
+              <h5 className="card-title">Total Classes</h5>
+              <p className="card-text display-6">{stats.classes}</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
-};
+}
 
-export default AdminDashboardLayout;
+export default AdminDashboard;

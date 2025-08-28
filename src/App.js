@@ -19,8 +19,9 @@ import AdminLoginPage from "./component/admin/admin_login/AdminLoginPage.jsx";
 import AdminAddUser from "./component/admin/user_add/AdminUserAdd.jsx";
 import NoticeDashboard from "./component/admin/add_notice/NoticeDashboard.jsx";
 import AdminAddClassPage from "./component/admin/add_class/AdminAddClassPage.jsx";
+import AdminLayout from "./component/AdminLayout.jsx";
 import AdminDashboard from "./component/admin/AdminDashboard.jsx";
-import AdminHome from "./component/admin/AdminHome.jsx";
+
 
 // import AdminNoticeBoard from "./component/Notice/AdminNoticeBoard";
 
@@ -37,16 +38,12 @@ function App() {
           <Route path="/admin/user-add" element={<AdminAddUser />} />
           <Route path="/admin/add-class" element={<AdminAddClassPage />} />
           <Route path="/notice-dashboard" element={<NoticeDashboard />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
-          <Route
-            path="/"
-            element={<Navigate to="/admin/dashboard" replace />}
-          />
-          <Route path="/admin/dashboard" element={<AdminHome />} />
-          <Route
-            path="/admin-dashboard"
-            element={<Navigate to="/admin/dashboard" replace />}
-          />
+          {/* <Route path="/admin-dashboard" element={<AdminDashboard />} /> */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="user-add" element={<AdminAddUser />} />
+            <Route path="add-class" element={<AdminAddClassPage />} />
+          </Route>
 
           <Route path="/register-student" element={<RegisterPage />} />
           <Route path="/register-teacher" element={<TeacherRegisterPage />} />
