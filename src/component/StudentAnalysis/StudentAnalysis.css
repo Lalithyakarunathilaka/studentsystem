@@ -6,10 +6,12 @@
   font-family: Arial, sans-serif;
 }
 
-.analysis-container h1 {
-  color: #214d8a;
-  margin-bottom: 40px;
-  text-align: center;
+.analysis-container h2 {
+  color: #221656;
+  padding: 30px;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: center;
 }
 
 .filters {
@@ -22,7 +24,9 @@
 
 .filters label {
   font-weight: bold;
+  white-space: nowrap; 
 }
+
 
 .filters select {
   padding: 8px;

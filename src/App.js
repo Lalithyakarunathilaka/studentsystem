@@ -43,6 +43,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="user-add" element={<AdminAddUser />} />
             <Route path="add-class" element={<AdminAddClassPage />} />
+            <Route path="analysis" element={<StudentAnalysis />} />
           </Route>
 
           <Route path="/register-student" element={<RegisterPage />} />
