@@ -55,7 +55,7 @@ const AddNotice = ({ onAdd }) => {
 
   return (
     <form className="form-card" onSubmit={handleSubmit}>
-      <h3 className="form-title">Add New Notice</h3>
+      {/* <h3 className="form-title">Add New Notice</h3> */}
 
       <div className="form-group">
         <label>Title</label>

@@ -5,6 +5,7 @@ import "./NoticeDashboard.css";
 const NoticeDashboard = () => {
   const [notices, setNotices] = useState([]);
   const [filterAudience, setFilterAudience] = useState("All");
+  
 
   useEffect(() => {
     fetch("http://localhost:5001/api/notices")

@@ -16,7 +16,7 @@ const AdminLayout = () => {
         <h4 className="mb-4">Admin Panel</h4>
         <ul className="nav flex-column">
           <li className="nav-item mb-2">
-            <Link to="/admin-dashboard" className="nav-link text-white">Dashboard</Link>
+            <Link to="/admin/dashboard" className="nav-link text-white">Dashboard</Link>
           </li>
           <li className="nav-item mb-2">
             <Link to="/admin/user-add" className="nav-link text-white">Add User</Link>
@@ -25,7 +25,13 @@ const AdminLayout = () => {
             <Link to="/admin/add-class" className="nav-link text-white">Add Class</Link>
           </li>
           <li className="nav-item mb-2">
-            <Link to="/addnotice" className="nav-link text-white">Add Notices</Link>
+            <Link to="/notice-dashboard" className="nav-link text-white">Add Notices</Link>
+          </li>
+          <li className="nav-item mb-2">
+            <Link to="/analysis" className="nav-link text-white">Analysis</Link>
+          </li>
+          <li className="nav-item mb-2">
+            <Link to="/leave-approval" className="nav-link text-white">Leave Approval</Link>
           </li>
         </ul>
       </div>
