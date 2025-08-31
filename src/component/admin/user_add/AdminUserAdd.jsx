@@ -73,6 +73,7 @@ const AdminAddUser = () => {
     <div className="admin-add-user-container">
       <form onSubmit={handleSubmit} className="admin-add-user-form">
         <h2>Add New User</h2>
+        <p><center>Enter details to register user for the school.</center></p>
 
         {errors && <div className="error-message">{errors}</div>}
         {successMsg && <div className="success-message">{successMsg}</div>}
