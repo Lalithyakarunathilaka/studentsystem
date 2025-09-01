@@ -13,24 +13,25 @@ const AdminLayout = () => {
     backgroundColor: "rgba(17, 41, 77, 1)", // navy blue background
   }}
 >
-        <h4 className="mb-4">Admin Panel</h4>
+  <br></br> <br></br>
+        <h4 className="mb-4">Admin Panel</h4> <br></br>
         <ul className="nav flex-column">
-          <li className="nav-item mb-2">
+          <li className="nav-item mb-4">
             <Link to="/admin/dashboard" className="nav-link text-white">Dashboard</Link>
           </li>
-          <li className="nav-item mb-2">
+          <li className="nav-item mb-4">
             <Link to="/admin/user-add" className="nav-link text-white">Add User</Link>
           </li>
-          <li className="nav-item mb-2">
+          <li className="nav-item mb-4">
             <Link to="/admin/add-class" className="nav-link text-white">Add Class</Link>
           </li>
-          <li className="nav-item mb-2">
+          <li className="nav-item mb-4">
             <Link to="/notice-dashboard" className="nav-link text-white">Add Notices</Link>
           </li>
-          <li className="nav-item mb-2">
-            <Link to="/analysis" className="nav-link text-white">Analysis</Link>
+          <li className="nav-item mb-4">
+            <Link to="/analysis" className="nav-link text-white">Performance Analysis</Link>
           </li>
-          <li className="nav-item mb-2">
+          <li className="nav-item mb-4">
             <Link to="/leave-approval" className="nav-link text-white">Leave Approval</Link>
           </li>
         </ul>
@@ -46,7 +47,8 @@ const AdminLayout = () => {
 
         {/* Page content */}
         <div className="p-4">
-          <Outlet /> {/* This renders child admin pages */}
+          <Outlet /> 
+          {/* This renders child admin pages */}
         </div>
       </div>
     </div>
