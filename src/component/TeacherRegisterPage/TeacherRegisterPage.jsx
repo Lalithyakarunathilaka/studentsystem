@@ -189,7 +189,7 @@ const TeacherRegisterPage = () => {
       if (response.ok) {
         alert("Login successful!");
         localStorage.setItem("teacherToken", data.token);
-        window.location.href = "/teacher-dashboard";
+        window.location.href = "/teacher/dashboard";
       } else {
         alert(data.error || "Login failed. Please check your credentials.");
       }

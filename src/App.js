@@ -25,6 +25,10 @@ import StudentLayout from "./component/students/StudentLayout.jsx";
 import Marks from "./component/students/Marks.jsx";
 import StudentDashboard from "./component/students/StudentDashboard.jsx";
 import ViewNotices from "./component/students/ViewNotices.jsx";
+import TeacherLayout from "./component/teacher/TeacherLayout.jsx";
+import TeacherDashboard from "./component/teacher/TeacherDashboard.jsx";
+import TeacherNotices from "./component/teacher/TeacherNotices.jsx";
+import TeacherLeaveForm from "./component/teacher/TeacherLeaveForm.jsx";
 
 // import AdminNoticeBoard from "./component/Notice/AdminNoticeBoard";
 
@@ -47,13 +51,19 @@ function App() {
             <Route path="add-class" element={<AdminAddClassPage />} />
             <Route path="analysis" element={<StudentAnalysis />} />
             <Route path="home" element={<Home />} />
-            {/* <Route path="notice-dashboard" element={<NoticeDashboard />} /> */}
+
           </Route>
 
           <Route path="/student" element={<StudentLayout/>}>
           <Route path="dashboard" element={<StudentDashboard />} />
             <Route path="marks" element={<Marks/>}/>
             <Route path="notices" element={<ViewNotices/>}/>
+          </Route>
+
+          <Route path="/teacher" element={<TeacherLayout/>}>
+          <Route path="dashboard" element={<TeacherDashboard />} />
+          <Route path="teacher-notices" element={<TeacherNotices/>}/>
+          <Route path="leave-request" element={<TeacherLeaveForm/>}/>
           </Route>
 
           <Route path="/register-student" element={<RegisterPage />} />
