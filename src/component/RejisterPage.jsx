@@ -34,7 +34,7 @@ const StudentLoginPage = () => {
       if (response.ok) {
         alert("Login successful!");
         localStorage.setItem("studentToken", data.token);
-        window.location.href = "/student-dashboard";
+        window.location.href = "/student/dashboard";
       } else {
         alert(data.error || "Login failed. Please check your credentials.");
       }
