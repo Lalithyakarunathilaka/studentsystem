@@ -22,7 +22,7 @@ const AddNotice = ({ onAdd }) => {
     }
 
     try {
-      const res = await fetch("http://localhost:5001/api/add-notices", {
+      const res = await fetch("http://localhost:5001/api/notices/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
