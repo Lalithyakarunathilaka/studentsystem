@@ -27,7 +27,7 @@ const AdminAddClassPage = () => {
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
-        const response = await fetch("http://localhost:5001/api/users?role=teacher");
+        const response = await fetch("http://localhost:5001/api/users/get?role=teacher");
         if (!response.ok) throw new Error("Failed to fetch teachers");
         const data = await response.json();
         setTeachers(data); 
@@ -44,7 +44,7 @@ const AdminAddClassPage = () => {
     setLoader(true);
 
     try {
-      const response = await fetch("http://localhost:5001/api/classes", {
+      const response = await fetch("http://localhost:5001/api/classes/add-class", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -57,7 +57,7 @@ const AdminAddClassPage = () => {
 
       if (response.ok) {
         alert("Class created successfully!");
-        navigate("/admin/classes");
+        navigate("/admin/get-class");
       } else {
         alert(data.error || "Failed to create class");
       }
