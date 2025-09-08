@@ -11,7 +11,7 @@
 /* Table styling */
 .user-table {
   width: 100%;
-  max-width: 900px;
+  max-width: 1000px;
   border-collapse: collapse;
   margin-bottom: 40px; /* space between table and form */
   background: #ffffff;

@@ -7,7 +7,7 @@ const TeacherNotices = () => {
   
 
   useEffect(() => {
-    fetch("http://localhost:5001/api/notices")
+    fetch("http://localhost:5001/api/notices/get")
       .then((res) => res.json())
       .then((data) => setNotices(data))
       .catch((err) => console.error("Error fetching notices:", err));

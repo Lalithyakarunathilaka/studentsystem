@@ -175,7 +175,7 @@ const TeacherRegisterPage = () => {
     }
   
     try {
-      const response = await fetch("http://localhost:5001/api/teacher-login", {
+      const response = await fetch("http://localhost:5001/api/teacher/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

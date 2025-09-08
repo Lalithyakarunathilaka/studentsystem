@@ -20,7 +20,7 @@ const StudentLoginPage = () => {
     }
   
     try {
-      const response = await fetch("http://localhost:5001/api/student-login", {
+      const response = await fetch("http://localhost:5001/api/student/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

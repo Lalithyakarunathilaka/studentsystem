@@ -1,38 +1,116 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const AdminLayout = () => {
+  const [openClassMenu, setOpenClassMenu] = useState(false);
+  const [openNotices, setOpenNotices] = useState(false);
+  const [openAddUser, setOpenAddUser] = useState(false);
+
   return (
     <div className="d-flex" style={{ minHeight: "100vh" }}>
       {/* Sidebar */}
       <div
-  className="text-white p-3"
-  style={{
-    width: "250px",
-    backgroundColor: "rgba(17, 41, 77, 1)", // navy blue background
-  }}
->
-  <br></br> <br></br>
-        <h4 className="mb-4">Admin Panel</h4> <br></br>
+        className="text-white p-3"
+        style={{
+          width: "250px",
+          backgroundColor: "rgba(17, 41, 77, 1)", // navy blue background
+        }}
+      >
+        <br />
+        <br />
+        <h4 className="mb-4">Admin Panel</h4>
+        <br />
+
         <ul className="nav flex-column">
-          <li className="nav-item mb-4">
-            <Link to="/admin/dashboard" className="nav-link text-white">Dashboard</Link>
+          <li className="nav-item mb-3">
+            <Link to="/admin/dashboard" className="nav-link text-white">
+              Dashboard
+            </Link>
           </li>
-          <li className="nav-item mb-4">
-            <Link to="/admin/user-add" className="nav-link text-white">Add User</Link>
+
+          <li className="nav-item mb-3">
+            <button
+              className="btn btn-toggle align-items-center rounded text-white w-200 text-start"
+              style={{ background: "transparent", border: "none" }}
+              onClick={() => setOpenAddUser(!openAddUser)}
+            >
+              Add Users ▾
+            </button>
+            {openAddUser && (
+              <ul className="nav flex-column ms-3 mt-2">
+                <li className="nav-item mb-2">
+                  <Link to="/admin/add-students" className="nav-link text-white">
+                    Add Students
+                  </Link>
+                </li>
+                <li className="nav-item mb-2">
+                  <Link to="/admin/add-teachers" className="nav-link text-white">
+                    Add Teachers
+                  </Link>
+                </li>
+              </ul>
+            )}
           </li>
-          <li className="nav-item mb-4">
-            <Link to="/admin/add-class" className="nav-link text-white">Add Class</Link>
+
+          {/* Class Menu */}
+          <li className="nav-item mb-3">
+            <button
+              className="btn btn-toggle align-items-center rounded text-white w-200 text-start"
+              style={{ background: "transparent", border: "none" }}
+              onClick={() => setOpenClassMenu(!openClassMenu)}
+            >
+              Classes ▾
+            </button>
+            {openClassMenu && (
+              <ul className="nav flex-column ms-3 mt-2">
+                <li className="nav-item mb-2">
+                  <Link to="/admin/add-class" className="nav-link text-white">
+                    Add Classes
+                  </Link>
+                </li>
+                <li className="nav-item mb-2">
+                  <Link to="/admin/get-class" className="nav-link text-white">
+                    List Classes
+                  </Link>
+                </li>
+              </ul>
+            )}
           </li>
-          <li className="nav-item mb-4">
-            <Link to="/notice-dashboard" className="nav-link text-white">Add Notices</Link>
+
+          <li className="nav-item mb-3">
+            <button
+              className="btn btn-toggle align-items-center rounded text-white w-200 text-start"
+              style={{ background: "transparent", border: "none" }}
+              onClick={() => setOpenNotices(!openNotices)}
+            >
+              Notices ▾
+            </button>
+            {openNotices && (
+              <ul className="nav flex-column ms-3 mt-2">
+                <li className="nav-item mb-2">
+                  <Link to="/admin/add-notice" className="nav-link text-white">
+                    Add Notices
+                  </Link>
+                </li>
+                <li className="nav-item mb-2">
+                  <Link to="/admin/list-notice" className="nav-link text-white">
+                    List Notices
+                  </Link>
+                </li>
+              </ul>
+            )}
           </li>
-          <li className="nav-item mb-4">
-            <Link to="/analysis" className="nav-link text-white">Performance Analysis</Link>
+
+          <li className="nav-item mb-3">
+            <Link to="/analysis" className="nav-link text-white">
+              Performance Analysis
+            </Link>
           </li>
-          <li className="nav-item mb-4">
-            <Link to="/leave-approval" className="nav-link text-white">Leave Approval</Link>
+          <li className="nav-item mb-3">
+            <Link to="/leave-approval" className="nav-link text-white">
+              Leave Approval
+            </Link>
           </li>
         </ul>
       </div>
@@ -47,7 +125,7 @@ const AdminLayout = () => {
 
         {/* Page content */}
         <div className="p-4">
-          <Outlet /> 
+          <Outlet />
           {/* This renders child admin pages */}
         </div>
       </div>

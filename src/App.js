@@ -11,7 +11,6 @@ import Notices from "./component/Notice/Notices";
 import StudentAnalysis from "./component/StudentAnalysis/StudentAnalysis";
 import RegisterPage from "./component/RejisterPage";
 import TeacherRegisterPage from "./component/TeacherRegisterPage/TeacherRegisterPage";
-import AddNotice from "./component/Notice/AddNotice/AddNotice.jsx.jsx";
 import ViewNotice from "./component/Notice/ViewNotice.jsx";
 import ChooseUser from "./component/chooseUser/ChooseUser.jsx";
 import AdminRegisterPage from "./component/admin/admin_register/AdminRegisterPage.jsx";
@@ -29,6 +28,10 @@ import TeacherLayout from "./component/teacher/TeacherLayout.jsx";
 import TeacherDashboard from "./component/teacher/TeacherDashboard.jsx";
 import TeacherNotices from "./component/teacher/TeacherNotices.jsx";
 import TeacherLeaveForm from "./component/teacher/TeacherLeaveForm.jsx";
+import AdminClassListPage from "./component/admin/add_class/AdminClassListPage.jsx";
+import AddNotice from "./component/admin/add_notice/AddNotice.jsx";
+import StudentAdd from "./component/admin/user_add/StudentAdd.jsx";
+import TeacherAdd from "./component/admin/user_add/TeacherAdd.jsx";
 
 // import AdminNoticeBoard from "./component/Notice/AdminNoticeBoard";
 
@@ -47,8 +50,12 @@ function App() {
           {/* <Route path="/admin-dashboard" element={<AdminDashboard />} /> */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="user-add" element={<AdminAddUser />} />
+            <Route path="add-students" element={<StudentAdd />} />
+            <Route path="add-teachers" element={<TeacherAdd />} />
             <Route path="add-class" element={<AdminAddClassPage />} />
+            <Route path="get-class" element={<AdminClassListPage/>}/>
+            <Route path="add-notice" element={<AddNotice/>}/>
+            <Route path="list-notice" element={<NoticeDashboard/>}/>
             <Route path="analysis" element={<StudentAnalysis />} />
             <Route path="home" element={<Home />} />
 
@@ -69,9 +76,10 @@ function App() {
           <Route path="/register-student" element={<RegisterPage />} />
           <Route path="/register-teacher" element={<TeacherRegisterPage />} />
           <Route path="/notices" element={<Notices />} />
-          <Route path="/addnotice" element={<AddNotice />} />
-          <Route path="/viewnotice" element={<ViewNotice />} />
+          {/* <Route path="/addnotice" element={<AddNotice />} />
+          <Route path="/viewnotice" element={<ViewNotice />} /> */}
           <Route path="/analysis" element={<StudentAnalysis />} />
+          
         </Routes>
       </div>
     </Router>

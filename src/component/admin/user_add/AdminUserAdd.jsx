@@ -42,9 +42,11 @@ const AdminAddUser = () => {
     if (!formData.email.trim()) return "Email is required";
     if (!/\S+@\S+\.\S+/.test(formData.email)) return "Invalid email";
     if (!formData.password && !formData.id) return "Password is required";
-    if (formData.password && formData.password.length < 6) return "Password must be at least 6 characters";
+    if (formData.password && formData.password.length < 6)
+      return "Password must be at least 6 characters";
     if (!formData.role) return "Role is required";
-    if (formData.role === "student" && !formData.grade) return "Grade is required for students";
+    if (formData.role === "student" && !formData.grade)
+      return "Grade is required for students";
     if (!formData.gender) return "Gender is required";
     return null;
   };
@@ -60,7 +62,7 @@ const AdminAddUser = () => {
     try {
       const method = formData.id ? "PUT" : "POST";
       const url = formData.id
-        ? `http://localhost:5001/api/admin/update-user/${formData.id}`
+        ? `http://localhost:5001/api/users/update-user/${formData.id}`
         : "http://localhost:5001/api/users/add";
 
       const response = await fetch(url, {
@@ -72,7 +74,11 @@ const AdminAddUser = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccessMsg(formData.id ? "User updated successfully!" : "User added successfully!");
+        setSuccessMsg(
+          formData.id
+            ? "User updated successfully!"
+            : "User added successfully!"
+        );
         setFormData({
           id: null,
           full_name: "",
@@ -107,9 +113,12 @@ const AdminAddUser = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
-      const response = await fetch(`http://localhost:5001/api/admin/delete-user/${id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:5001/api/users/delete-user/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
       if (response.ok) {
         setSuccessMsg("User deleted successfully!");
         setUsers(users.filter((u) => u.id !== id));
@@ -123,39 +132,6 @@ const AdminAddUser = () => {
 
   return (
     <div className="admin-add-user-container">
-      {/* Users list at the top */}
-      {/* Users list at the top */}
-<h3>Registered Users</h3>
-<table className="user-table">
-  <thead>
-    <tr>
-      <th>Full Name</th>
-      <th>Role</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {users.length > 0 ? (
-      users.map((u) => (
-        <tr key={u.id}>
-          <td>{u.full_name}</td>
-          <td>{u.role}</td>
-          <td>
-            <button onClick={() => handleEdit(u)}>Edit</button>
-            <button onClick={() => handleDelete(u.id)}>Delete</button>
-          </td>
-        </tr>
-      ))
-    ) : (
-      <tr>
-        <td colSpan="3" style={{ textAlign: "center" }}>No users found</td>
-      </tr>
-    )}
-  </tbody>
-
-
-      </table>
-
       {/* Add/Edit user form below */}
       <form onSubmit={handleSubmit} className="admin-add-user-form">
         <h2>{formData.id ? "Edit User" : "Add New User"}</h2>
@@ -164,10 +140,20 @@ const AdminAddUser = () => {
         {successMsg && <div className="success-message">{successMsg}</div>}
 
         <label>Full Name:</label>
-        <input type="text" name="fullName" value={formData.full_name} onChange={handleChange} />
+        <input
+          type="text"
+          name="fullName"
+          value={formData.full_name}
+          onChange={handleChange}
+        />
 
         <label>Email:</label>
-        <input type="email" name="email" value={formData.email} onChange={handleChange} />
+        <input
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+        />
 
         <label>Password:</label>
         <input
@@ -188,7 +174,12 @@ const AdminAddUser = () => {
         {formData.role === "student" && (
           <>
             <label>Grade:</label>
-            <input type="text" name="grade" value={formData.grade} onChange={handleChange} />
+            <input
+              type="text"
+              name="grade"
+              value={formData.grade}
+              onChange={handleChange}
+            />
           </>
         )}
 
@@ -199,8 +190,44 @@ const AdminAddUser = () => {
           <option value="Female">Female</option>
         </select>
 
-        <button type="submit">{formData.id ? "Update User" : "Add User"}</button>
+        <button type="submit">
+          {formData.id ? "Update User" : "Add User"}
+        </button>
       </form>
+      <br></br>
+
+      {/* Users list at the top */}
+      <h3>Registered Users</h3> <br></br>
+      <table className="user-table">
+        <thead>
+          <tr>
+            <th>Full Name</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.length > 0 ? (
+            users.map((u) => (
+              <tr key={u.id}>
+                <td>{u.full_name}</td>
+                <td>{u.role}</td>
+                <td>
+                  <button onClick={() => handleEdit(u)}>Edit</button>
+                  <button onClick={() => handleDelete(u.id)}>Delete</button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="3" style={{ textAlign: "center" }}>
+                No users found
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+
     </div>
   );
 };
