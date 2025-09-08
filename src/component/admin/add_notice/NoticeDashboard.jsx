@@ -21,9 +21,9 @@ const NoticeDashboard = () => {
       notice.permission === "Both"
   );
 
-  const addNotice = (newNotice) => {
-    setNotices([newNotice, ...notices]);
-  };
+  // const addNotice = (newNotice) => {
+  //   setNotices([newNotice, ...notices]);
+  // };
 
   const filterOptions = ["All", "Student", "Teacher", "Lost & Found"];
 
@@ -31,9 +31,9 @@ const NoticeDashboard = () => {
     <div className="notice-dashboard-container">
       <h2 className="notice-dashboard-title">Notice & Announcements</h2>
 
-      <div className="add-notice-wrapper">
+      {/* <div className="add-notice-wrapper">
         <AddNotice onAdd={addNotice} />
-      </div>
+      </div> */}
 
       <div className="filter-buttons">
         {filterOptions.map((aud) => (
