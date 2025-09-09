@@ -1,9 +1,52 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Container, Row, Col, Card } from "react-bootstrap";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts";
 
 function AdminDashboard() {
-  const [stats, setStats] = useState({ users: 0, classes: 0 });
+  const [stats, setStats] = useState({
+    users: 0,
+    students: 0,
+    teachers: 0,
+    classes: 0,
+  });
+
+  const [selectedFilter, setSelectedFilter] = useState("All");
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5001/api/admin/stats")
+      .then((res) => setStats(res.data))
+      .catch((err) => console.error(err));
+  }, []);
+
+  // Chart data
+  const userDistribution = [
+    { name: "Students", value: stats.students },
+    { name: "Teachers", value: stats.teachers },
+  ];
+
+  const overviewStats = [
+    { name: "Users", value: stats.users },
+    { name: "Students", value: stats.students },
+    { name: "Teachers", value: stats.teachers },
+    { name: "Classes", value: stats.classes },
+  ];
+
+  const COLORS = ["#0088FE", "#FF8042"];
+
+  // Notices
   const notices = [
     {
       id: 1,
@@ -34,19 +77,11 @@ function AdminDashboard() {
       type: "Announcement",
     },
   ];
-  useEffect(() => {
-    axios.get("http://localhost:5001/api/admin/stats")
-      .then(res => setStats(res.data))
-      .catch(err => console.error(err));
-  }, []);
-
-  const [selectedFilter, setSelectedFilter] = useState("All");
 
   const filteredNotices =
     selectedFilter === "All"
       ? notices
       : notices.filter((notice) => notice.type === selectedFilter);
-
 
   return (
     <div style={{ minHeight: "100vh", background: "#f9f9f9" }}>
@@ -58,56 +93,109 @@ function AdminDashboard() {
           boxShadow: "0px 5px 5px rgba(0,0,0,0.2)",
         }}
       >
-        <h2 className="text-dark">Admin</h2>
+        <h2 className="text-dark">Admin Dashboard</h2>
       </header>
 
-      {/* Dashboard content */}
+      {/* Stats Section */}
       <div className="row mt-4">
-        <div className="col-md-6">
-          <div className="card text-center">
-            <div className="card-body">
-              <h5 className="card-title">Total Users</h5>
-              <p className="card-text display-6">{stats.users}</p>
+        {[
+          { title: "Total Users", value: stats.users },
+          { title: "Total Students", value: stats.students },
+          { title: "Total Teachers", value: stats.teachers },
+          { title: "Total Classes", value: stats.classes },
+        ].map((item, idx) => (
+          <div className="col-md-3 mb-3" key={idx}>
+            <div className="card text-center shadow-sm">
+              <div className="card-body">
+                <h5 className="card-title">{item.title}</h5>
+                <p className="card-text display-6">{item.value}</p>
+              </div>
             </div>
           </div>
+        ))}
+      </div>
+
+      {/* Charts Section */}
+      <div className="row mt-4">
+        {/* Pie Chart */}
+        <div className="col-md-6 mb-4">
+          <div className="card shadow-sm p-3">
+            <h5 className="text-center">Users Analysis</h5>
+            <ResponsiveContainer width="100%" height={400}>
+              <PieChart>
+                <Pie
+                  data={userDistribution}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                  outerRadius={120}
+                  dataKey="value"
+                >
+                  {userDistribution.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-        <div className="col-md-6">
-          <div className="card text-center">
-            <div className="card-body">
-              <h5 className="card-title">Total Classes</h5>
-              <p className="card-text display-6">{stats.classes}</p>
-            </div>
+
+        {/* Bar Chart */}
+        <div className="col-md-6 mb-4">
+          <div className="card shadow-sm p-3">
+            <h5 className="text-center">Overview</h5>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={overviewStats}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="value" fill="#82ca9d" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
 
+      {/* Notices Section */}
       <div className="notice-container">
-      <div className="filter-buttons">
-        {["All", "Notice", "Announcement", "Lost & Found"].map((filter) => (
-          <button
-            key={filter}
-            className={`filter-btn ${
-              selectedFilter === filter ? "active" : ""
-            }`}
-            onClick={() => setSelectedFilter(filter)}
-          >
-            {filter}
-          </button>
-        ))}
-      </div>
+        <div className="filter-buttons mb-3 text-center">
+          {["All", "Notice", "Announcement", "Lost & Found"].map((filter) => (
+            <button
+              key={filter}
+              className={`btn mx-2 ${
+                selectedFilter === filter ? "btn-primary" : "btn-outline-primary"
+              }`}
+              onClick={() => setSelectedFilter(filter)}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
 
-      <div className="notices-grid">
-        {filteredNotices.map((notice) => (
-          <div key={notice.id} className="notice-card">
-            <h3>{notice.title}</h3>
-            <p>{notice.content}</p>
-            <span className={`notice-type ${notice.type.toLowerCase()}`}>
-              {notice.type}
-            </span>
-          </div>
-        ))}
+        <div className="row">
+          {filteredNotices.map((notice) => (
+            <div key={notice.id} className="col-md-6 mb-4">
+              <div className="card shadow-sm">
+                <div className="card-body">
+                  <h5 className="card-title">{notice.title}</h5>
+                  <p className="card-text">{notice.content}</p>
+                  <span className="badge bg-secondary">{notice.type}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
     </div>
   );
 }

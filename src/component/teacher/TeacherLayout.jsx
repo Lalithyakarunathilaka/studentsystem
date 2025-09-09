@@ -20,7 +20,7 @@ const TeacherLayout = () => {
             <Link to="/teacher/dashboard" className="nav-link text-white">Dashboard</Link>
           </li>
           <li className="nav-item mb-4">
-            <Link to="/admin/user-add" className="nav-link text-white">Classes</Link>
+            <Link to="/teacher/marks" className="nav-link text-white">Marks</Link>
           </li>
           <li className="nav-item mb-4">
             <Link to="/admin/add-class" className="nav-link text-white">Students</Link>
@@ -29,7 +29,7 @@ const TeacherLayout = () => {
             <Link to="/teacher/teacher-notices" className="nav-link text-white"> Notices & Announcements</Link>
           </li>
           <li className="nav-item mb-4">
-            <Link to="/leave-request" className="nav-link text-white">Leave Requests</Link>
+            <Link to="/teacher/leave" className="nav-link text-white">Leave Requests</Link>
           </li>
         </ul>
       </div>

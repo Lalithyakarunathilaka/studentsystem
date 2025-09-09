@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import teacherImage from "../../../assets/admin-login.png"; 
-import "./TeacherLoginPage.css"// Make sure this path is correct
+import "./TeacherLoginPage.css"
 
 const TeacherLoginPage = () => {
   const navigate = useNavigate();
@@ -29,15 +30,32 @@ const TeacherLoginPage = () => {
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
     setSubmitted(true);
 
-    setTimeout(() => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5001/api/auth/teacher/login",
+        {
+          email: form.email,
+          password: form.password,
+        }
+      );
+
+      // Save teacher info to localStorage
+      const teacher = response.data.teacher;
+      localStorage.setItem("teacherId", teacher.id);
+      localStorage.setItem("teacherName", teacher.fullName);
+
       alert("Teacher logged in successfully!");
-      navigate("/teacher/dashboard");
-    }, 1500);
+      navigate("/teacher/dashboard"); // Redirect to dashboard
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || "Login failed");
+      setSubmitted(false);
+    }
   };
 
   return (

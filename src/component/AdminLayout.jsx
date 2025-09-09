@@ -6,6 +6,7 @@ const AdminLayout = () => {
   const [openClassMenu, setOpenClassMenu] = useState(false);
   const [openNotices, setOpenNotices] = useState(false);
   const [openAddUser, setOpenAddUser] = useState(false);
+  const [openSbjects, setOpenSubjects] = useState(false);
 
   return (
     <div className="d-flex" style={{ minHeight: "100vh" }}>
@@ -72,6 +73,31 @@ const AdminLayout = () => {
                 <li className="nav-item mb-2">
                   <Link to="/admin/get-class" className="nav-link text-white">
                     List Classes
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </li>
+
+          {/* Subjects Menu */}
+          <li className="nav-item mb-3">
+            <button
+              className="btn btn-toggle align-items-center rounded text-white w-200 text-start"
+              style={{ background: "transparent", border: "none" }}
+              onClick={() => setOpenSubjects(!openSbjects)}
+            >
+              Subjects ▾
+            </button>
+            {openSbjects && (
+              <ul className="nav flex-column ms-3 mt-2">
+                <li className="nav-item mb-2">
+                  <Link to="/admin/add-subjects" className="nav-link text-white">
+                    Add Subjects
+                  </Link>
+                </li>
+                <li className="nav-item mb-2">
+                  <Link to="/admin/assign-teacher" className="nav-link text-white">
+                    Assign Teachers
                   </Link>
                 </li>
               </ul>

@@ -133,6 +133,8 @@ const AddNotice = ({ onAdd }) => {
           <option value="Teacher">Teachers</option>
         </select>
       </div>
+      <br>
+      </br>
 
       <button type="submit" className="btn-primary">
         Add Notice

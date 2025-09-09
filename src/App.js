@@ -32,6 +32,9 @@ import AdminClassListPage from "./component/admin/add_class/AdminClassListPage.j
 import AddNotice from "./component/admin/add_notice/AddNotice.jsx";
 import StudentAdd from "./component/admin/user_add/StudentAdd.jsx";
 import TeacherAdd from "./component/admin/user_add/TeacherAdd.jsx";
+import AssignTeacherToClass from "./component/admin/subjects/AssignTeacherToClass.jsx";
+import AddSubjects from "./component/admin/subjects/AddSubjects.jsx";
+import TeacherMarksForm from "./component/teacher/TeacherMarksForm.jsx";
 
 // import AdminNoticeBoard from "./component/Notice/AdminNoticeBoard";
 
@@ -54,6 +57,8 @@ function App() {
             <Route path="add-teachers" element={<TeacherAdd />} />
             <Route path="add-class" element={<AdminAddClassPage />} />
             <Route path="get-class" element={<AdminClassListPage/>}/>
+            <Route path="assign-teacher" element={<AssignTeacherToClass />} />
+            <Route path="add-subjects" element={<AddSubjects/>}/>
             <Route path="add-notice" element={<AddNotice/>}/>
             <Route path="list-notice" element={<NoticeDashboard/>}/>
             <Route path="analysis" element={<StudentAnalysis />} />
@@ -70,7 +75,8 @@ function App() {
           <Route path="/teacher" element={<TeacherLayout/>}>
           <Route path="dashboard" element={<TeacherDashboard />} />
           <Route path="teacher-notices" element={<TeacherNotices/>}/>
-          <Route path="leave-request" element={<TeacherLeaveForm/>}/>
+          <Route path="marks" element={<TeacherMarksForm/>}/>
+          <Route path="leave" element={<TeacherLeaveForm/>}/>
           </Route>
 
           <Route path="/register-student" element={<RegisterPage />} />
