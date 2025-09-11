@@ -7,6 +7,7 @@ const AdminLayout = () => {
   const [openNotices, setOpenNotices] = useState(false);
   const [openAddUser, setOpenAddUser] = useState(false);
   const [openSbjects, setOpenSubjects] = useState(false);
+  
 
   return (
     <div className="d-flex" style={{ minHeight: "100vh" }}>
@@ -134,7 +135,7 @@ const AdminLayout = () => {
             </Link>
           </li>
           <li className="nav-item mb-3">
-            <Link to="/leave-approval" className="nav-link text-white">
+            <Link to="/admin/leave-approval" className="nav-link text-white">
               Leave Approval
             </Link>
           </li>

@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const TeacherLeaveForm = () => {
   const [formData, setFormData] = useState({
-    teacherId: "T001", // auto-filled (example)
-    name: "John Doe", // auto-filled (example)
-    class: "10-B", // auto-filled (example)
+    teacherId: "",
+    name: "",
+    classId: "",
     leaveType: "",
     startDate: "",
     endDate: "",
@@ -13,75 +13,182 @@ const TeacherLeaveForm = () => {
     document: null,
   });
 
+  const [teachers, setTeachers] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+
+  // Fetch teachers and classes on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [teachersRes, classesRes] = await Promise.all([
+          axios.get("http://localhost:5001/api/users/get?role=teacher"),
+          axios.get("http://localhost:5001/api/classes/get-all"),
+        ]);
+
+        setTeachers(teachersRes.data);
+        setClasses(classesRes.data);
+      } catch (err) {
+        console.error("Failed to fetch teachers or classes:", err);
+        setMessage("❌ Failed to load data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
+  
     if (name === "document") {
       setFormData({ ...formData, document: files[0] });
-    } else {
+    } else if (name === "teacherId") {
+      const selectedTeacher = teachers.find((t) => t.id.toString() === value);
+      setFormData({
+        ...formData,
+        teacherId: value,
+        name: selectedTeacher ? selectedTeacher.full_name : "",
+      });
+    }
+    else {
       setFormData({ ...formData, [name]: value });
     }
   };
+  
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Build form data for upload
-    const data = new FormData();
-    Object.keys(formData).forEach((key) => {
-      data.append(key, formData[key]);
-    });
-
-    console.log("Leave Request Submitted:", formData);
-    alert("Leave request submitted successfully!");
+    setMessage("");
+    setLoading(true);
+  
+    try {
+      const payload = {
+        teacher_id: formData.teacherId,
+        name: formData.name,
+        class_assigned: formData.classId,
+        leave_type: formData.leaveType,
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        reason: formData.reason,
+      };
+  
+      console.log("Submitting payload:", payload);
+  
+      const response = await axios.post(
+        "http://localhost:5001/api/teacher-leaves/submit",
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+  
+      console.log("Response:", response.data);
+  
+      setMessage("✅ Leave request submitted successfully!");
+      setFormData({
+        teacherId: "",
+        name: "",
+        classId: "",
+        leaveType: "",
+        startDate: "",
+        endDate: "",
+        reason: "",
+        document: null,
+      });
+    } catch (err) {
+      console.error(err);
+      setMessage("❌ Failed to submit leave request.");
+    } finally {
+      setLoading(false); 
+    }
   };
+  
 
   return (
     <div className="container mt-4">
       <h3 className="mb-3">Teacher Leave Request Form</h3>
+
+      {message && (
+        <div
+          className={`alert ${
+            message.startsWith("✅") ? "alert-success" : "alert-danger"
+          }`}
+        >
+          {message}
+        </div>
+      )}
+
       <form
         onSubmit={handleSubmit}
         className="border p-4 rounded shadow-sm bg-light"
-        style={{ maxWidth: "700px", margin: "0 auto", minHeight: "900px" }}
+        style={{ maxWidth: "700px", margin: "0 auto" }}
       >
-        {/* Teacher Info (Auto-filled) */}
+        {/* Teacher Selector */}
         <div className="mb-3">
-          <label className="form-label">Teacher ID</label>
-          <input
-            type="text"
-            className="form-control"
+          <label className="form-label">Select Teacher</label>
+          <select
+            name="teacherId"
             value={formData.teacherId}
-            
-          />
+            onChange={handleChange}
+            className="form-select"
+            required
+          >
+            <option value="">Select Teacher</option>
+            {teachers.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.full_name}
+              </option>
+            ))}
+          </select>
         </div>
 
+        {/* Auto-filled Name */}
         <div className="mb-3">
           <label className="form-label">Name</label>
           <input
             type="text"
             className="form-control"
             value={formData.name}
-            
+            readOnly
           />
         </div>
 
+        {/* Class Selection */}
         <div className="mb-3">
           <label className="form-label">Class</label>
-          <input
-            type="text"
-            className="form-control"
-            value={formData.class}
-            
-          />
+          {classes.length > 1 ? (
+            <select
+            name="classId"
+            value={formData.classId}
+            onChange={handleChange}
+            className="form-select"
+            required
+          >
+            <option value="">Select Class</option>
+            {classes.map((cls) => (
+              <option key={cls.id} value={cls.name}>{cls.name}</option>
+            ))}
+          </select>
+          
+          ) : (
+            <input
+              type="text"
+              className="form-control"
+              value={classes[0]?.name || ""}
+              readOnly
+            />
+          )}
         </div>
 
-        {/* Leave Details */}
+        {/* Leave Type */}
         <div className="mb-3">
           <label className="form-label">Leave Type</label>
           <select
-            className="form-select"
             name="leaveType"
             value={formData.leaveType}
             onChange={handleChange}
+            className="form-select"
             required
           >
             <option value="">Select Leave Type</option>
@@ -95,15 +202,16 @@ const TeacherLeaveForm = () => {
           </select>
         </div>
 
+        {/* Start & End Dates */}
         <div className="row mb-3">
           <div className="col">
             <label className="form-label">Start Date</label>
             <input
               type="date"
-              className="form-control"
               name="startDate"
               value={formData.startDate}
               onChange={handleChange}
+              className="form-control"
               required
             />
           </div>
@@ -111,45 +219,47 @@ const TeacherLeaveForm = () => {
             <label className="form-label">End Date</label>
             <input
               type="date"
-              className="form-control"
               name="endDate"
               value={formData.endDate}
               onChange={handleChange}
+              className="form-control"
               required
             />
           </div>
         </div>
 
+        {/* Reason */}
         <div className="mb-3">
           <label className="form-label">Reason</label>
           <textarea
-            className="form-control"
             name="reason"
             rows="3"
             value={formData.reason}
             onChange={handleChange}
+            className="form-control"
             required
           ></textarea>
         </div>
 
-        {/* File Upload */}
+        {/* Document */}
         <div className="mb-3">
-          <label className="form-label">
-            Upload Supporting Document (optional)
-          </label>
+          <label className="form-label">Supporting Document (optional)</label>
           <input
             type="file"
-            className="form-control"
             name="document"
             onChange={handleChange}
+            className="form-control"
           />
         </div>
 
-        <div style={{ marginTop: "24px" }}>
-          <button type="submit" className="btn btn-primary w-100">
-            Submit Leave Request
-          </button>
-        </div>
+        <button
+          type="submit"
+          className="btn btn-primary w-100"
+          disabled={loading}
+        >
+          {loading ? "Submitting..." : "Submit Leave Request"}
+          
+        </button>
       </form>
     </div>
   );
