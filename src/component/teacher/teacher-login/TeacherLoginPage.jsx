@@ -1,17 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import teacherImage from "../../../assets/admin-login.png"; 
-import "./TeacherLoginPage.css"
+import teacherImage from "../../../assets/admin-login.png";
+import "./TeacherLoginPage.css";
 
 const TeacherLoginPage = () => {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -19,7 +15,8 @@ const TeacherLoginPage = () => {
   const validate = () => {
     const newErrors = {};
     if (!form.email.trim()) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = "Invalid email";
+    else if (!/\S+@\S+\.\S+/.test(form.email))
+      newErrors.email = "Invalid email";
     if (!form.password.trim()) newErrors.password = "Password is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -37,20 +34,25 @@ const TeacherLoginPage = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5001/api/auth/teacher/login",
+        "http://localhost:5001/api/teacher/login",
         {
           email: form.email,
           password: form.password,
         }
       );
 
-      // Save teacher info to localStorage
-      const teacher = response.data.teacher;
-      localStorage.setItem("teacherId", teacher.id);
-      localStorage.setItem("teacherName", teacher.fullName);
+      const { teacher, token } = response.data;
 
-      alert("Teacher logged in successfully!");
-      navigate("/teacher/dashboard"); // Redirect to dashboard
+      // Save teacher info and token
+      // After successful login response
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("teacherId", data.teacher.id);
+      localStorage.setItem("userName", data.teacher.fullName);
+      localStorage.setItem("userEmail", data.teacher.email);
+      localStorage.setItem("userRole", data.teacher.role);
+
+      alert("✅ Teacher logged in successfully!");
+      navigate("/teacher/dashboard");
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.error || "Login failed");
@@ -60,7 +62,6 @@ const TeacherLoginPage = () => {
 
   return (
     <div className="register-container">
-      {/* Left Side - Form */}
       <div className="register-left">
         <div className="register-form minimized-form">
           <h2>Teacher Login</h2>
@@ -101,7 +102,9 @@ const TeacherLoginPage = () => {
                 </button>
               </div>
               {errors.password && (
-                <div className="invalid-feedback d-block">{errors.password}</div>
+                <div className="invalid-feedback d-block">
+                  {errors.password}
+                </div>
               )}
             </div>
 
@@ -121,7 +124,6 @@ const TeacherLoginPage = () => {
         </div>
       </div>
 
-      {/* Right Side - Image */}
       <div className="register-right">
         <img src={teacherImage} alt="Teacher" className="admin-image" />
       </div>
