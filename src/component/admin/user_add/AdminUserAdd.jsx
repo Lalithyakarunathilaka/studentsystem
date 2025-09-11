@@ -8,11 +8,12 @@ const AdminAddUser = () => {
     email: "",
     password: "",
     role: "",
-    grade: "",
+    class_id: "",   // ✅ store class_id instead of free text grade
     gender: "",
   });
 
   const [users, setUsers] = useState([]);
+  const [classes, setClasses] = useState([]);  // ✅ list of classes
   const [errors, setErrors] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
@@ -27,8 +28,20 @@ const AdminAddUser = () => {
     }
   };
 
+  // ✅ Fetch classes
+  const fetchClasses = async () => {
+    try {
+      const response = await fetch("http://localhost:5001/api/classes/get-all");
+      const data = await response.json();
+      setClasses(data);
+    } catch (err) {
+      console.error("Error fetching classes:", err);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchClasses();
   }, []);
 
   const handleChange = (e) => {
@@ -45,8 +58,8 @@ const AdminAddUser = () => {
     if (formData.password && formData.password.length < 6)
       return "Password must be at least 6 characters";
     if (!formData.role) return "Role is required";
-    if (formData.role === "student" && !formData.grade)
-      return "Grade is required for students";
+    if (formData.role === "student" && !formData.class_id)
+      return "Class is required for students";
     if (!formData.gender) return "Gender is required";
     return null;
   };
@@ -74,18 +87,14 @@ const AdminAddUser = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccessMsg(
-          formData.id
-            ? "User updated successfully!"
-            : "User added successfully!"
-        );
+        setSuccessMsg(formData.id ? "User updated successfully!" : "User added successfully!");
         setFormData({
           id: null,
-          full_name: "",
+          fullName: "",
           email: "",
           password: "",
           role: "",
-          grade: "",
+          class_id: "",
           gender: "",
         });
         fetchUsers();
@@ -100,11 +109,11 @@ const AdminAddUser = () => {
   const handleEdit = (user) => {
     setFormData({
       id: user.id,
-      full_name: user.full_name,
+      fullName: user.full_name,
       email: user.email,
       password: "",
       role: user.role,
-      grade: user.grade || "",
+      class_id: user.class_id || "",
       gender: user.gender || "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -115,9 +124,7 @@ const AdminAddUser = () => {
     try {
       const response = await fetch(
         `http://localhost:5001/api/users/delete-user/${id}`,
-        {
-          method: "DELETE",
-        }
+        { method: "DELETE" }
       );
       if (response.ok) {
         setSuccessMsg("User deleted successfully!");
@@ -143,7 +150,7 @@ const AdminAddUser = () => {
         <input
           type="text"
           name="fullName"
-          value={formData.full_name}
+          value={formData.fullName}
           onChange={handleChange}
         />
 
@@ -173,13 +180,15 @@ const AdminAddUser = () => {
 
         {formData.role === "student" && (
           <>
-            <label>Grade:</label>
-            <input
-              type="text"
-              name="grade"
-              value={formData.grade}
-              onChange={handleChange}
-            />
+            <label>Class:</label>
+            <select name="class_id" value={formData.class_id} onChange={handleChange}>
+              <option value="">Select Class</option>
+              {classes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
           </>
         )}
 
@@ -190,19 +199,18 @@ const AdminAddUser = () => {
           <option value="Female">Female</option>
         </select>
 
-        <button type="submit">
-          {formData.id ? "Update User" : "Add User"}
-        </button>
+        <button type="submit">{formData.id ? "Update User" : "Add User"}</button>
       </form>
-      <br></br>
 
-      {/* Users list at the top */}
-      <h3>Registered Users</h3> <br></br>
+      <br />
+      {/* Users list */}
+      <h3>Registered Users</h3> <br />
       <table className="user-table">
         <thead>
           <tr>
             <th>Full Name</th>
             <th>Role</th>
+            <th>Class</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -212,6 +220,7 @@ const AdminAddUser = () => {
               <tr key={u.id}>
                 <td>{u.full_name}</td>
                 <td>{u.role}</td>
+                <td>{u.class_name || u.class_id || "-"}</td>
                 <td>
                   <button onClick={() => handleEdit(u)}>Edit</button>
                   <button onClick={() => handleDelete(u.id)}>Delete</button>
@@ -220,14 +229,13 @@ const AdminAddUser = () => {
             ))
           ) : (
             <tr>
-              <td colSpan="3" style={{ textAlign: "center" }}>
+              <td colSpan="4" style={{ textAlign: "center" }}>
                 No users found
               </td>
             </tr>
           )}
         </tbody>
       </table>
-
     </div>
   );
 };

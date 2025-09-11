@@ -7,28 +7,41 @@ const StudentAdd = () => {
     full_name: "",
     email: "",
     password: "",
-    grade: "",
+    class_id: "",
     gender: "",
-    role: "student", // hardcoded for student
+    role: "student",
   });
 
   const [users, setUsers] = useState([]);
+  const [classes, setClasses] = useState([]); // all classes
   const [errors, setErrors] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Fetch students only
+  // Fetch students
   const fetchUsers = async () => {
     try {
       const response = await fetch("http://localhost:5001/api/users/get");
       const data = await response.json();
-      setUsers(data.filter((u) => u.role === "student")); // filter students
+      setUsers(data.filter((u) => u.role === "student"));
     } catch (err) {
       console.error("Error fetching users:", err);
     }
   };
 
+  // Fetch all classes
+  const fetchClasses = async () => {
+    try {
+      const response = await fetch("http://localhost:5001/api/classes/get-all");
+      const data = await response.json();
+      setClasses(data);
+    } catch (err) {
+      console.error("Error fetching classes:", err);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchClasses();
   }, []);
 
   const handleChange = (e) => {
@@ -44,7 +57,7 @@ const StudentAdd = () => {
     if (!formData.id && !formData.password) return "Password is required";
     if (formData.password && formData.password.length < 6)
       return "Password must be at least 6 characters";
-    if (!formData.grade) return "Grade is required for students";
+    if (!formData.class_id) return "Class is required";
     if (!formData.gender) return "Gender is required";
     return null;
   };
@@ -80,7 +93,7 @@ const StudentAdd = () => {
           full_name: "",
           email: "",
           password: "",
-          grade: "",
+          class_id: "",
           gender: "",
           role: "student",
         });
@@ -99,7 +112,7 @@ const StudentAdd = () => {
       full_name: user.full_name,
       email: user.email,
       password: "",
-      grade: user.grade || "",
+      class_id: user.class_id || "",
       gender: user.gender || "",
       role: "student",
     });
@@ -157,13 +170,15 @@ const StudentAdd = () => {
           placeholder={formData.id ? "Leave blank to keep password" : ""}
         />
 
-        <label>Grade:</label>
-        <input
-          type="text"
-          name="grade"
-          value={formData.grade}
-          onChange={handleChange}
-        />
+        <label>Class:</label>
+        <select name="class_id" value={formData.class_id} onChange={handleChange}>
+          <option value="">Select Class</option>
+          {classes.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
 
         <label>Gender:</label>
         <select name="gender" value={formData.gender} onChange={handleChange}>
@@ -176,8 +191,8 @@ const StudentAdd = () => {
           {formData.id ? "Update Student" : "Add Student"}
         </button>
       </form>
-      <br />
 
+      <br />
       <h3>Registered Students</h3>
       <br />
       <table className="user-table">
@@ -185,7 +200,7 @@ const StudentAdd = () => {
           <tr>
             <th>Full Name</th>
             <th>Email</th>
-            <th>Grade</th>
+            <th>Class</th>
             <th>Gender</th>
             <th>Actions</th>
           </tr>
@@ -196,7 +211,7 @@ const StudentAdd = () => {
               <tr key={u.id}>
                 <td>{u.full_name}</td>
                 <td>{u.email}</td>
-                <td>{u.grade}</td>
+                <td>{classes.find((c) => c.id === u.class_id)?.name || "-"}</td>
                 <td>{u.gender}</td>
                 <td>
                   <button onClick={() => handleEdit(u)}>Edit</button>
