@@ -7,7 +7,7 @@ const TeacherLeaveBoard = () => {
   
   useEffect(() => {
     
-    const storedTeacherId = localStorage.getItem("teacherId") || "11"; 
+    const storedTeacherId = localStorage.getItem("teacherId") || "6"; 
     setTeacherId(storedTeacherId);
     fetchTeacherLeaves(storedTeacherId);
   }, []);
@@ -124,9 +124,9 @@ const TeacherLeaveBoard = () => {
                 <th>End Date</th>
                 <th>Duration</th>
                 <th>Reason</th>
-                <th>Status</th>
                 <th>Admin Comment</th>
-                <th>Document</th>
+                <th>Status</th>
+                {/* <th>Document</th> */}
               </tr>
             </thead>
             <tbody>
@@ -147,18 +147,11 @@ const TeacherLeaveBoard = () => {
                   <td>
                     <div
                       className="text-truncate"
-                      style={{ maxWidth: "200px" }}
+                      style={{ maxWidth: "400px" }}
                       title={leave.reason}
                     >
                       {leave.reason}
                     </div>
-                  </td>
-                  <td>
-                    <span
-                      className={`badge ${getStatusBadgeClass(leave.status)}`}
-                    >
-                      {leave.status || "Pending"}
-                    </span>
                   </td>
                   <td>
                     {leave.admin_comment ? (
@@ -174,6 +167,13 @@ const TeacherLeaveBoard = () => {
                     )}
                   </td>
                   <td>
+                    <span
+                      className={`badge ${getStatusBadgeClass(leave.status)}`}
+                    >
+                      {leave.status || "Pending"}
+                    </span>
+                  </td>
+                  {/* <td>
                     {leave.document ? (
                       <a
                         href={`http://localhost:5001/uploads/${leave.document}`}
@@ -186,7 +186,7 @@ const TeacherLeaveBoard = () => {
                     ) : (
                       "No Document"
                     )}
-                  </td>
+                  </td> */}
                 </tr>
               ))}
             </tbody>

@@ -31,3 +31,19 @@
     height: auto;
   }
   
+  /* e.g., in TeacherLoginPage.css */
+.notice {
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+.notice-success {
+  background: #e9f7ef;
+  color: #1e7e34;
+  border: 1px solid #c3e6cb;
+}
+.notice-error {
+  background: #fdecea;
+  color: #a71d2a;
+  border: 1px solid #f5c6cb;
+}

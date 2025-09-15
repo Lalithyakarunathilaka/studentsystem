@@ -242,7 +242,7 @@ const TeacherLeaveForm = () => {
         </div>
 
         {/* Document */}
-        <div className="mb-3">
+        {/* <div className="mb-3">
           <label className="form-label">Supporting Document (optional)</label>
           <input
             type="file"
@@ -250,7 +250,7 @@ const TeacherLeaveForm = () => {
             onChange={handleChange}
             className="form-control"
           />
-        </div>
+        </div> */}
 
         <button
           type="submit"
