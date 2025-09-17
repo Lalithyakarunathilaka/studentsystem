@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
+const pickTeacherName = (t) =>
+  (t?.full_name ||
+    t?.fullName ||
+    t?.name ||
+    (t?.first_name && t?.last_name && `${t.first_name} ${t.last_name}`) ||
+    "");
+
 const TeacherLeaveForm = () => {
   const [formData, setFormData] = useState({
     teacherId: "",
@@ -18,112 +25,143 @@ const TeacherLeaveForm = () => {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
-  // Fetch teachers and classes on mount
+  // 1) Load teachers/classes + preselect logged-in teacher (if available)
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
       try {
         const [teachersRes, classesRes] = await Promise.all([
           axios.get("http://localhost:5001/api/users/get?role=teacher"),
           axios.get("http://localhost:5001/api/classes/get-all"),
         ]);
+        const tList = Array.isArray(teachersRes.data) ? teachersRes.data : [];
+        setTeachers(tList);
+        setClasses(Array.isArray(classesRes.data) ? classesRes.data : []);
 
-        setTeachers(teachersRes.data);
-        setClasses(classesRes.data);
+        // Try to preselect the logged-in teacher from localStorage
+        try {
+          const raw = localStorage.getItem("teacher");
+          const logged = raw ? JSON.parse(raw) : null;
+          const loggedId = logged?.id ?? logged?.teacher?.id ?? logged?.teacher_id ?? logged?.teacherId;
+          if (loggedId) {
+            const sel = tList.find((t) => String(t.id) === String(loggedId));
+            setFormData((p) => ({
+              ...p,
+              teacherId: String(loggedId),
+              name: pickTeacherName(sel) || pickTeacherName(logged) || p.name,
+            }));
+          }
+        } catch {}
       } catch (err) {
         console.error("Failed to fetch teachers or classes:", err);
         setMessage("❌ Failed to load data");
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchData();
+    })();
   }, []);
+
+  // 2) If teachers load AFTER a teacherId is already set, ensure name syncs
+  useEffect(() => {
+    if (!formData.teacherId || teachers.length === 0) return;
+    const sel = teachers.find((t) => String(t.id) === String(formData.teacherId));
+    const newName = pickTeacherName(sel);
+    if (newName && newName !== formData.name) {
+      setFormData((p) => ({ ...p, name: newName }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teachers, formData.teacherId]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-  
+
     if (name === "document") {
-      setFormData({ ...formData, document: files[0] });
-    } else if (name === "teacherId") {
-      const selectedTeacher = teachers.find((t) => t.id.toString() === value);
-      setFormData({
-        ...formData,
-        teacherId: value,
-        name: selectedTeacher ? selectedTeacher.full_name : "",
-      });
+      setFormData((p) => ({ ...p, document: files?.[0] || null }));
+      return;
     }
-    else {
-      setFormData({ ...formData, [name]: value });
+
+    if (name === "teacherId") {
+      const sel = teachers.find((t) => String(t.id) === String(value));
+      setFormData((p) => ({
+        ...p,
+        teacherId: String(value),
+        name: pickTeacherName(sel),
+      }));
+      return;
     }
+
+    setFormData((p) => ({ ...p, [name]: value }));
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     setLoading(true);
-  
+
     try {
+      const token =
+        localStorage.getItem("teacherToken") ||
+        localStorage.getItem("token") ||
+        sessionStorage.getItem("teacherToken") ||
+        sessionStorage.getItem("token");
+
+      if (!token) {
+        setMessage("❌ You are not logged in.");
+        setLoading(false);
+        return;
+      }
+
       const payload = {
-        teacher_id: formData.teacherId,
-        name: formData.name,
-        class_assigned: formData.classId,
+        teacher_id: formData.teacherId,       // used if role=admin; ignored if role=teacher
+        name: formData.name,                  // optional (backend can derive)
+        class_assigned: formData.classId,     // optional (backend can derive)
         leave_type: formData.leaveType,
         start_date: formData.startDate,
         end_date: formData.endDate,
         reason: formData.reason,
       };
-  
-      console.log("Submitting payload:", payload);
-  
-      const response = await axios.post(
+
+      await axios.post(
         "http://localhost:5001/api/teacher-leaves/submit",
         payload,
-        { headers: { "Content-Type": "application/json" } }
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // <-- REQUIRED
+          },
+        }
       );
-  
-      console.log("Response:", response.data);
-  
+
       setMessage("✅ Leave request submitted successfully!");
-      setFormData({
-        teacherId: "",
-        name: "",
+      setFormData((p) => ({
+        ...p,
+        // keep teacher preselection & name for convenience
         classId: "",
         leaveType: "",
         startDate: "",
         endDate: "",
         reason: "",
         document: null,
-      });
+      }));
     } catch (err) {
       console.error(err);
-      setMessage("❌ Failed to submit leave request.");
+      const apiMsg = err?.response?.data?.error || "❌ Failed to submit leave request.";
+      setMessage(apiMsg);
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
-  
 
   return (
     <div className="container mt-4">
       <h3 className="mb-3">Teacher Leave Request Form</h3>
 
       {message && (
-        <div
-          className={`alert ${
-            message.startsWith("✅") ? "alert-success" : "alert-danger"
-          }`}
-        >
+        <div className={`alert ${message.startsWith("✅") ? "alert-success" : "alert-danger"}`}>
           {message}
         </div>
       )}
 
-      <form
-        onSubmit={handleSubmit}
-        className="border p-4 rounded shadow-sm bg-light"
-        style={{ maxWidth: "700px", margin: "0 auto" }}
-      >
+      <form onSubmit={handleSubmit} className="border p-4 rounded shadow-sm bg-light" style={{ maxWidth: 700, margin: "0 auto" }}>
         {/* Teacher Selector */}
         <div className="mb-3">
           <label className="form-label">Select Teacher</label>
@@ -137,7 +175,7 @@ const TeacherLeaveForm = () => {
             <option value="">Select Teacher</option>
             {teachers.map((t) => (
               <option key={t.id} value={t.id}>
-                {t.full_name}
+                {pickTeacherName(t)}
               </option>
             ))}
           </select>
@@ -146,12 +184,7 @@ const TeacherLeaveForm = () => {
         {/* Auto-filled Name */}
         <div className="mb-3">
           <label className="form-label">Name</label>
-          <input
-            type="text"
-            className="form-control"
-            value={formData.name}
-            readOnly
-          />
+          <input type="text" className="form-control" value={formData.name} readOnly />
         </div>
 
         {/* Class Selection */}
@@ -159,25 +192,21 @@ const TeacherLeaveForm = () => {
           <label className="form-label">Class</label>
           {classes.length > 1 ? (
             <select
-            name="classId"
-            value={formData.classId}
-            onChange={handleChange}
-            className="form-select"
-            required
-          >
-            <option value="">Select Class</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.name}>{cls.name}</option>
-            ))}
-          </select>
-          
+              name="classId"
+              value={formData.classId}
+              onChange={handleChange}
+              className="form-select"
+              required
+            >
+              <option value="">Select Class</option>
+              {classes.map((cls) => (
+                <option key={cls.id} value={cls.name}>
+                  {cls.name}
+                </option>
+              ))}
+            </select>
           ) : (
-            <input
-              type="text"
-              className="form-control"
-              value={classes[0]?.name || ""}
-              readOnly
-            />
+            <input type="text" className="form-control" value={classes[0]?.name || ""} readOnly />
           )}
         </div>
 
@@ -202,63 +231,26 @@ const TeacherLeaveForm = () => {
           </select>
         </div>
 
-        {/* Start & End Dates */}
+        {/* Dates */}
         <div className="row mb-3">
           <div className="col">
             <label className="form-label">Start Date</label>
-            <input
-              type="date"
-              name="startDate"
-              value={formData.startDate}
-              onChange={handleChange}
-              className="form-control"
-              required
-            />
+            <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} className="form-control" required />
           </div>
           <div className="col">
             <label className="form-label">End Date</label>
-            <input
-              type="date"
-              name="endDate"
-              value={formData.endDate}
-              onChange={handleChange}
-              className="form-control"
-              required
-            />
+            <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} className="form-control" required />
           </div>
         </div>
 
         {/* Reason */}
         <div className="mb-3">
           <label className="form-label">Reason</label>
-          <textarea
-            name="reason"
-            rows="3"
-            value={formData.reason}
-            onChange={handleChange}
-            className="form-control"
-            required
-          ></textarea>
+          <textarea name="reason" rows="3" value={formData.reason} onChange={handleChange} className="form-control" required />
         </div>
 
-        {/* Document */}
-        {/* <div className="mb-3">
-          <label className="form-label">Supporting Document (optional)</label>
-          <input
-            type="file"
-            name="document"
-            onChange={handleChange}
-            className="form-control"
-          />
-        </div> */}
-
-        <button
-          type="submit"
-          className="btn btn-primary w-100"
-          disabled={loading}
-        >
+        <button type="submit" className="btn btn-primary w-100" disabled={loading}>
           {loading ? "Submitting..." : "Submit Leave Request"}
-          
         </button>
       </form>
     </div>

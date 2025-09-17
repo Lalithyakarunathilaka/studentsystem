@@ -1,131 +1,133 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import teacherImage from "../../../assets/admin-login.png";
-import "./TeacherLoginPage.css";
+import teacherImage from "../../../assets/teacher.jpg";
+import "./TeacherLoginPage.css"; // <- fixed
 
 const TeacherLoginPage = () => {
-  const navigate = useNavigate();
-
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [errors, setErrors] = useState({});
-  const [submitted, setSubmitted] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const validate = () => {
-    const newErrors = {};
-    if (!form.email.trim()) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(form.email))
-      newErrors.email = "Invalid email";
-    if (!form.password.trim()) newErrors.password = "Password is required";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [msg, setMsg] = useState({ type: "", text: "" });
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" });
+    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
-    setSubmitted(true);
+    if (!formData.email || !formData.password) {
+      setMsg({ type: "error", text: "Please enter both email and password." });
+      return;
+    }
+
+    setSubmitting(true);
+    setMsg({ type: "", text: "" });
 
     try {
-      const response = await axios.post(
-        "http://localhost:5001/api/teacher/login",
-        {
-          email: form.email,
-          password: form.password,
-        }
+      const response = await fetch("http://localhost:5001/api/teacher/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email.trim(),
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMsg({ type: "error", text: data.error || "Login failed." });
+        setSubmitting(false);
+        return;
+      }
+
+      if (data?.teacher) {
+        localStorage.setItem("teacher", JSON.stringify(data.teacher));
+      }
+      if (data?.token) {
+        localStorage.setItem("teacherToken", data.token);
+      }
+
+      setMsg({
+        type: "success",
+        text: `Login successful! Welcome ${data?.teacher?.name || "Teacher"}.`,
+      });
+
+      sessionStorage.setItem(
+        "loginFlash",
+        JSON.stringify({
+          text: `Welcome ${data?.teacher?.name || "Teacher"}!`,
+          ts: Date.now(),
+        })
       );
 
-      const { teacher, token } = response.data;
-
-      // Save teacher info and token
-      // After successful login response
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("teacherId", data.teacher.id);
-      localStorage.setItem("userName", data.teacher.fullName);
-      localStorage.setItem("userEmail", data.teacher.email);
-      localStorage.setItem("userRole", data.teacher.role);
-
-      alert("✅ Teacher logged in successfully!");
-      navigate("/teacher/dashboard");
-    } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.error || "Login failed");
-      setSubmitted(false);
+      window.location.href = "/teacher/dashboard";
+    } catch (error) {
+      console.error("Login error:", error);
+      setMsg({ type: "error", text: "Failed to connect to server." });
+      setSubmitting(false);
     }
   };
 
   return (
     <div className="register-container">
-      <div className="register-left">
-        <div className="register-form minimized-form">
-          <h2>Teacher Login</h2>
-          <p>Welcome back! Please enter your credentials to continue.</p>
-
-          <form onSubmit={handleSubmit} noValidate>
-            <div className="form-group mb-3">
-              <label>Email</label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                className={`form-control ${errors.email && "is-invalid"}`}
-                placeholder="Enter your email"
-              />
-              <div className="invalid-feedback">{errors.email}</div>
-            </div>
-
-            <div className="form-group mb-3">
-              <label>Password</label>
-              <div className="input-group">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  className={`form-control ${errors.password && "is-invalid"}`}
-                  placeholder="Enter your password"
-                />
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary"
-                  onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
-                >
-                  {showPassword ? "Hide" : "Show"}
-                </button>
-              </div>
-              {errors.password && (
-                <div className="invalid-feedback d-block">
-                  {errors.password}
-                </div>
-              )}
-            </div>
-
-            <button type="submit" className="btn btn-primary w-100">
-              {submitted ? "Logging in..." : "Login"}
-            </button>
-
-            <div className="text-end mt-3">
-              <small>
-                Don’t have an account?{" "}
-                <a href="/teacher-register" className="text-decoration-none">
-                  Register here
-                </a>
-              </small>
-            </div>
-          </form>
-        </div>
+      <div className="student-login-left">
+        <img
+          src={teacherImage}
+          alt="Teacher"
+          className="student-image"
+          width={750}
+          height={800}
+        />
       </div>
 
       <div className="register-right">
-        <img src={teacherImage} alt="Teacher" className="admin-image" />
+        <div className="register-form">
+          <h2>Teacher Login</h2>
+          <br />
+          <p>Welcome! Please enter your credentials to continue.</p>
+
+          {msg.text && (
+            <div
+              className={`notice ${
+                msg.type === "success" ? "notice-success" : "notice-error"
+              }`}
+              style={{ marginBottom: 12 }}
+            >
+              {msg.text}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Email:</label>
+              <input
+                disabled={submitting}
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Password:</label>
+              <input
+                disabled={submitting}
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+
+            <button type="submit" className="register-btn" disabled={submitting}>
+              {submitting ? "Logging in..." : "Login"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

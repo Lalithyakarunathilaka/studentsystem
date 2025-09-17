@@ -25,7 +25,7 @@ const TeacherLayout = () => {
             <Link to="/teacher/marks" className="nav-link text-white">Marks</Link>
           </li>
           <li className="nav-item mb-4">
-            <Link to="/admin/add-class" className="nav-link text-white">Students</Link>
+            <Link to="/teacher/class" className="nav-link text-white">Class </Link>
           </li>
           <li className="nav-item mb-4">
             <Link to="/teacher/teacher-notices" className="nav-link text-white"> Notices & Announcements</Link>

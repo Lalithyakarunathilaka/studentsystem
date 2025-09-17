@@ -38,6 +38,8 @@ import TeacherMarksForm from "./component/teacher/TeacherMarksForm.jsx";
 import AdminLeaveApprove from "./component/admin/leave_approval/AdminLeaveApprove.jsx";
 import TeacherLeaveBoard from "./component/teacher/TeacherLeaveBoard.jsx";
 import { AuthProvider } from './context/AuthContext';
+import TeacherLoginPage from "./component/teacher/teacher-login/TeacherLoginPage.jsx";
+import TeacherClass from "./component/teacher/TeacherClass.jsx";
 
 // import AdminNoticeBoard from "./component/Notice/AdminNoticeBoard";
 
@@ -52,6 +54,8 @@ function App() {
           <Route path="/admin-register" element={<AdminRegisterPage />} />
           <Route path="/admin-login" element={<AdminLoginPage />} />
           <Route path="/notice-dashboard" element={<NoticeDashboard />} />
+          <Route path="/teacher/login" element={<TeacherLoginPage />} />
+
 
           {/* <Route path="/admin-dashboard" element={<AdminDashboard />} /> */}
           <Route path="/admin" element={<AdminLayout />}>
@@ -82,6 +86,7 @@ function App() {
           <Route path="marks" element={<TeacherMarksForm/>}/>
           <Route path="leave" element={<TeacherLeaveForm/>}/>
           <Route path="leave-status" element={<TeacherLeaveBoard/>}/>
+          <Route path="class" element={<TeacherClass/>}/>
           </Route>
 
           <Route path="/register-student" element={<RegisterPage />} />
