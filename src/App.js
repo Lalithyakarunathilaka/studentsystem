@@ -25,7 +25,7 @@ import Marks from "./component/students/Marks.jsx";
 import StudentDashboard from "./component/students/StudentDashboard.jsx";
 import ViewNotices from "./component/students/ViewNotices.jsx";
 import TeacherLayout from "./component/teacher/TeacherLayout.jsx";
-import TeacherDashboard from "./component/teacher/TeacherDashboard.jsx";
+import TeacherDashboard from "./component/teacher/teacher-dashboard/TeacherDashboard.jsx";
 import TeacherNotices from "./component/teacher/TeacherNotices.jsx";
 import TeacherLeaveForm from "./component/teacher/TeacherLeaveForm.jsx";
 import AdminClassListPage from "./component/admin/add_class/AdminClassListPage.jsx";
@@ -37,9 +37,11 @@ import AddSubjects from "./component/admin/subjects/AddSubjects.jsx";
 import TeacherMarksForm from "./component/teacher/TeacherMarksForm.jsx";
 import AdminLeaveApprove from "./component/admin/leave_approval/AdminLeaveApprove.jsx";
 import TeacherLeaveBoard from "./component/teacher/TeacherLeaveBoard.jsx";
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from "./context/AuthContext";
 import TeacherLoginPage from "./component/teacher/teacher-login/TeacherLoginPage.jsx";
 import TeacherClass from "./component/teacher/TeacherClass.jsx";
+import StudentPerformance from "./component/teacher/StudentPerformance.jsx";
+import StudentMarks from "./component/teacher/StudentMarks.jsx";
 
 // import AdminNoticeBoard from "./component/Notice/AdminNoticeBoard";
 
@@ -56,37 +58,43 @@ function App() {
           <Route path="/notice-dashboard" element={<NoticeDashboard />} />
           <Route path="/teacher/login" element={<TeacherLoginPage />} />
 
-
           {/* <Route path="/admin-dashboard" element={<AdminDashboard />} /> */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="add-students" element={<StudentAdd />} />
             <Route path="add-teachers" element={<TeacherAdd />} />
             <Route path="add-class" element={<AdminAddClassPage />} />
-            <Route path="get-class" element={<AdminClassListPage/>}/>
+            <Route path="get-class" element={<AdminClassListPage />} />
             <Route path="assign-teacher" element={<AssignTeacherToClass />} />
-            <Route path="add-subjects" element={<AddSubjects/>}/>
-            <Route path="add-notice" element={<AddNotice/>}/>
-            <Route path="list-notice" element={<NoticeDashboard/>}/>
-            <Route path="leave-approval" element={<AdminLeaveApprove/>}/>
+            <Route path="add-subjects" element={<AddSubjects />} />
+            <Route path="add-notice" element={<AddNotice />} />
+            <Route path="list-notice" element={<NoticeDashboard />} />
+            <Route path="leave-approval" element={<AdminLeaveApprove />} />
             <Route path="analysis" element={<StudentAnalysis />} />
             <Route path="home" element={<Home />} />
-
           </Route>
 
-          <Route path="/student" element={<StudentLayout/>}>
-          <Route path="dashboard" element={<StudentDashboard />} />
-            <Route path="marks" element={<Marks/>}/>
-            <Route path="notices" element={<ViewNotices/>}/>
+          <Route path="/student" element={<StudentLayout />}>
+            <Route path="dashboard" element={<StudentDashboard />} />
+            <Route path="marks" element={<Marks />} />
+            <Route path="notices" element={<ViewNotices />} />
           </Route>
 
-          <Route path="/teacher" element={<TeacherLayout/>}>
-          <Route path="dashboard" element={<TeacherDashboard />} />
-          <Route path="teacher-notices" element={<TeacherNotices/>}/>
-          <Route path="marks" element={<TeacherMarksForm/>}/>
-          <Route path="leave" element={<TeacherLeaveForm/>}/>
-          <Route path="leave-status" element={<TeacherLeaveBoard/>}/>
-          <Route path="class" element={<TeacherClass/>}/>
+          <Route path="/teacher" element={<TeacherLayout />}>
+            <Route path="dashboard" element={<TeacherDashboard />} />
+            <Route path="teacher-notices" element={<TeacherNotices />} />
+            <Route path="/teacher/marks" element={<TeacherMarksForm />} />
+            <Route
+              path="/teacher/student-marks/:studentId"
+              element={<StudentMarks />}
+            />
+            <Route
+              path="student-performance"
+              element={<StudentPerformance />}
+            />
+            <Route path="leave" element={<TeacherLeaveForm />} />
+            <Route path="leave-status" element={<TeacherLeaveBoard />} />
+            <Route path="class" element={<TeacherClass />} />
           </Route>
 
           <Route path="/register-student" element={<RegisterPage />} />
@@ -95,7 +103,6 @@ function App() {
           {/* <Route path="/addnotice" element={<AddNotice />} />
           <Route path="/viewnotice" element={<ViewNotice />} /> */}
           <Route path="/analysis" element={<StudentAnalysis />} />
-          
         </Routes>
       </div>
     </Router>

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const getTeacherFromLS = () => {
   try {
@@ -19,10 +20,12 @@ const TeacherMarksForm = () => {
   const [subjects, setSubjects] = useState([]);
   const [marks, setMarks] = useState([]);
 
-  // filters
   const [term, setTerm] = useState("First Term");
   const [academicYear, setAcademicYear] = useState("2024-2025");
 
+  const navigate = useNavigate();
+
+  // Fetch class and marks data
   const fetchData = async (token, t, yr) => {
     const url = new URL("http://localhost:5001/api/teacher/my-class-data");
     url.searchParams.set("term", t);
@@ -53,7 +56,7 @@ const TeacherMarksForm = () => {
         setClassMeta({ class_id: data.class_id, class_name: data.class_name });
         setStudents(data.students || []);
         setSubjects(data.subjects || []);
-        setMarks(data.marks || []);
+        setMarks(data.marks.map(m => ({ ...m, teacher_id: teacher.id })) || []);
         setError("");
       } catch (e) {
         if (!alive) return;
@@ -63,17 +66,69 @@ const TeacherMarksForm = () => {
       }
     })();
     return () => { alive = false; };
-  }, [term, academicYear]);
+  }, [term, academicYear, teacher]);
 
-  // map[student_id][subject_id] = marks
+  // Map of student_id -> subject_id -> marks
   const marksMap = useMemo(() => {
-    const m = new Map();
-    for (const r of marks) {
-      if (!m.has(r.student_id)) m.set(r.student_id, new Map());
-      m.get(r.student_id).set(r.subject_id, r.marks);
+    const map = new Map();
+    for (const m of marks) {
+      if (!map.has(m.student_id)) map.set(m.student_id, new Map());
+      map.get(m.student_id).set(m.subject_id, m.marks);
     }
-    return m;
+    return map;
   }, [marks]);
+
+  const handleInputChange = (student_id, subject_id, value) => {
+    const newMarks = [...marks];
+    const index = newMarks.findIndex(m => m.student_id === student_id && m.subject_id === subject_id);
+    const numericValue = value === "" ? "" : Math.max(0, Math.min(100, Number(value)));
+
+    if (index >= 0) {
+      newMarks[index].marks = numericValue;
+    } else {
+      newMarks.push({
+        student_id,
+        subject_id,
+        marks: numericValue,
+        teacher_id: teacher.id,
+      });
+    }
+    setMarks(newMarks);
+  };
+
+  const handleSave = async () => {
+    const token = localStorage.getItem("teacherToken");
+    if (!token) {
+      alert("Not logged in!");
+      return;
+    }
+
+    try {
+      await fetch("http://localhost:5001/api/marks/bulk-add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ marks, term, academic_year: academicYear }),
+      });
+      alert("Marks saved successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save marks.");
+    }
+  };
+
+  const handleCancel = async () => {
+    const token = localStorage.getItem("teacherToken");
+    if (!token) return;
+    setLoading(true);
+    try {
+      const data = await fetchData(token, term, academicYear);
+      setMarks(data.marks.map(m => ({ ...m, teacher_id: teacher.id })) || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) return <div style={{ padding: 24 }}>Loading…</div>;
   if (error)
@@ -99,7 +154,7 @@ const TeacherMarksForm = () => {
       </div>
 
       {/* Filters */}
-      <div style={{ margin: "12px 0 20px", display: "flex", gap: 12, alignItems: "center" }}>
+      <div style={{ margin: "2px 0 20px", display: "flex", gap: 12, alignItems: "center" }}>
         <label>
           Term:&nbsp;
           <select value={term} onChange={(e) => setTerm(e.target.value)}>
@@ -125,37 +180,60 @@ const TeacherMarksForm = () => {
           No students found for this class.
         </div>
       ) : (
-        <div style={{ overflowX: "auto", border: "1px solid #e6e8f0", borderRadius: 10 }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 720 }}>
-            <thead>
-              <tr>
-                <th style={{ borderBottom: "1px solid #eceef5", padding: "8px 6px", textAlign: "left" }}>#</th>
-                <th style={{ borderBottom: "1px solid #eceef5", padding: "8px 6px", textAlign: "left" }}>Student</th>
-                {subjects.map((sub) => (
-                  <th key={sub.subject_id} style={{ borderBottom: "1px solid #eceef5", padding: "8px 6px", textAlign: "left" }}>
-                    {sub.subject_name}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((stu, idx) => (
-                <tr key={stu.student_id}>
-                  <td style={{ borderBottom: "1px solid #f3f4f9", padding: "8px 6px" }}>{idx + 1}</td>
-                  <td style={{ borderBottom: "1px solid #f3f4f9", padding: "8px 6px" }}>{stu.student_name}</td>
-                  {subjects.map((sub) => {
-                    const val = marksMap.get(stu.student_id)?.get(sub.subject_id);
-                    return (
-                      <td key={sub.subject_id} style={{ borderBottom: "1px solid #f3f4f9", padding: "8px 6px" }}>
-                        {Number.isFinite(val) ? val : "–"}
-                      </td>
-                    );
-                  })}
+        <>
+          <div style={{ overflowX: "auto", border: "1px solid #e6e8f0", borderRadius: 10 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 720 }}>
+              <thead>
+                <tr>
+                  <th style={{ borderBottom: "1px solid #eceef5", padding: "8px 6px", textAlign: "left" }}>#</th>
+                  <th style={{ borderBottom: "1px solid #eceef5", padding: "8px 6px", textAlign: "left" }}>Student</th>
+                  {subjects.map((sub) => (
+                    <th key={sub.subject_id} style={{ borderBottom: "1px solid #eceef5", padding: "8px 6px", textAlign: "left" }}>
+                      {sub.subject_name}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {students.map((stu, idx) => (
+                  <tr key={stu.student_id}>
+                    <td style={{ borderBottom: "1px solid #f3f4f9", padding: "8px 6px" }}>{idx + 1}</td>
+                    <td
+                      style={{ borderBottom: "1px solid #f3f4f9", padding: "8px 6px", cursor: "pointer", color: "blue", textDecoration: "underline" }}
+                      onClick={() => navigate(`/teacher/student-marks/${stu.student_id}`)}
+                    >
+                      {stu.student_name}
+                    </td>
+                    {subjects.map((sub) => {
+                      const val = marksMap.get(stu.student_id)?.get(sub.subject_id) ?? "";
+                      return (
+                        <td key={sub.subject_id} style={{ borderBottom: "1px solid #f3f4f9", padding: "8px 6px" }}>
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={val}
+                            onChange={(e) => handleInputChange(stu.student_id, sub.subject_id, e.target.value)}
+                            style={{ width: 60, padding: "4px" }}
+                          />
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ marginTop: 16 }}>
+            <button className="btn btn-success me-2" onClick={handleSave}>
+              Save All
+            </button>
+            <button className="btn btn-secondary" onClick={handleCancel}>
+              Cancel Changes
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
