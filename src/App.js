@@ -42,6 +42,8 @@ import TeacherLoginPage from "./component/teacher/teacher-login/TeacherLoginPage
 import TeacherClass from "./component/teacher/TeacherClass.jsx";
 import StudentPerformance from "./component/teacher/StudentPerformance.jsx";
 import StudentMarks from "./component/teacher/StudentMarks.jsx";
+import MessageBoard from "./component/students/MessageBoard.jsx";
+import IndividualPerformance from "./component/students/IndividualPerformance.jsx";
 
 // import AdminNoticeBoard from "./component/Notice/AdminNoticeBoard";
 
@@ -78,6 +80,7 @@ function App() {
             <Route path="dashboard" element={<StudentDashboard />} />
             <Route path="marks" element={<Marks />} />
             <Route path="notices" element={<ViewNotices />} />
+            <Route path="performance" element={<IndividualPerformance/>}/>
           </Route>
 
           <Route path="/teacher" element={<TeacherLayout />}>

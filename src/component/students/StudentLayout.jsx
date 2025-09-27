@@ -25,6 +25,10 @@ const StudentLayout = () => {
           <li className="nav-item mb-4">
             <Link to="/student/notices" className="nav-link text-white">Notice Board</Link>
           </li>
+          <li className="nav-item mb-4">
+            <Link to="/student/performance" className="nav-link text-white">My Performance</Link>
+          </li>
+          
           {/* <li className="nav-item mb-4">
             <Link to="/notice-dashboard" className="nav-link text-white">Add Notices</Link>
           </li>
