@@ -16,6 +16,7 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Badge from "react-bootstrap/Badge";
 import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend, Title);
@@ -39,6 +40,22 @@ const readFlash = () => {
   } catch {
     return "";
   }
+};
+
+const TERM_ORDER = {
+  "First Term": 1,
+  "Second Term": 2,
+  "Third Term": 3,
+  "Term 1": 1,
+  "Term 2": 2,
+  "Term 3": 3,
+};
+
+const sortTerms = (a, b) => {
+  const oa = TERM_ORDER[a] ?? 999;
+  const ob = TERM_ORDER[b] ?? 999;
+  if (oa !== ob) return oa - ob;
+  return a.localeCompare(b);
 };
 
 // ---------- small Mark card ----------
@@ -69,51 +86,25 @@ const StudentDashboard = () => {
   const student = useMemo(() => readStudent(), []);
   const [flash, setFlash] = useState("");
 
-  // --- fallback data (used if API missing/unreachable) ---
-  const fallbackExams = useMemo(
-    () => [
-      { uuid: "1", examName: "Midterm Exam" },
-      { uuid: "2", examName: "Final Exam" },
-      { uuid: "3", examName: "Quarterly Exam" },
-    ],
-    []
-  );
-  const fallbackMarks = useMemo(
-    () => ({
-      "1": [
-        { subjectName: "Mathematics", markValue: 83 },
-        { subjectName: "Science", markValue: 77 },
-        { subjectName: "English", markValue: 50 },
-        { subjectName: "History", markValue: 72 },
-      ],
-      "2": [
-        { subjectName: "Mathematics", markValue: 92 },
-        { subjectName: "Science", markValue: 88 },
-        { subjectName: "English", markValue: 65 },
-        { subjectName: "History", markValue: 80 },
-      ],
-      "3": [
-        { subjectName: "Mathematics", markValue: 78 },
-        { subjectName: "Science", markValue: 82 },
-        { subjectName: "English", markValue: 58 },
-        { subjectName: "History", markValue: 75 },
-      ],
-    }),
-    []
-  );
-
-  // --- state: exams + marks (will try API first, then fallback) ---
-  const [exams, setExams] = useState(fallbackExams);
-  const [selectedExam, setSelectedExam] = useState(fallbackExams[0]);
-  const [markObj, setMarkObj] = useState(fallbackMarks[fallbackExams[0].uuid]);
+  // --- state ---
   const [loading, setLoading] = useState(false);
-  const [notice, setNotice] = useState({ type: "", text: "" }); // success|warning|danger
+  const [notice, setNotice] = useState({ type: "", text: "" });
 
-  // one-time flash + initial fetch
+  // raw marks (all terms) loaded initially to discover available terms/years
+  const [allMarks, setAllMarks] = useState([]);
+  const [terms, setTerms] = useState([]); // [{term, academic_year}] distinct combos
+  const [years, setYears] = useState([]); // ["2024-2025", ...]
+  const [selectedTerm, setSelectedTerm] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(null);
+
+  // marks shown for current selection
+  const [markList, setMarkList] = useState([]);
+
+  // one-time flash + initial fetch of ALL marks (no filters)
   useEffect(() => {
     setFlash(readFlash());
-    // Try to fetch exams for this student (optional API)
-    const fetchExams = async () => {
+
+    const fetchAllMarks = async () => {
       if (!student?.id) {
         setNotice({
           type: "warning",
@@ -123,127 +114,163 @@ const StudentDashboard = () => {
       }
       try {
         setLoading(true);
+        // Note: no term/year filters = backend returns all stored rows for the student
         const res = await fetch(
-          `http://localhost:5001/api/exams/student/${student.id}?_=${Date.now()}`
+          `http://localhost:5001/api/marks/student/${student.id}?_=${Date.now()}`
         );
-        if (!res.ok) throw new Error("exams fetch failed");
+        if (!res.ok) throw new Error("marks fetch failed");
         const data = await res.json();
-        if (Array.isArray(data) && data.length) {
-          setExams(data); // expect [{uuid, examName}, ...]
-          setSelectedExam(data[0]);
-        } else {
-          // keep fallback if empty
+        const list = Array.isArray(data) ? data : data?.data || [];
+
+        // normalize & keep a raw copy
+        const normalized = list.map((m) => ({
+          subjectName: m.subjectName || m.subject_name || m.subject || "Subject",
+          markValue: Number(m.markValue ?? m.marks ?? m.mark ?? 0),
+          term: m.term || "Unknown Term",
+          academic_year: m.academic_year || "N/A",
+        }));
+
+        setAllMarks(normalized);
+
+        if (!normalized.length) {
           setNotice({
             type: "warning",
-            text: "No exams found for this student yet. Showing sample data.",
+            text: "No marks found for this student yet.",
           });
+          setTerms([]);
+          setYears([]);
+          setSelectedTerm(null);
+          setSelectedYear(null);
+          setMarkList([]);
+          return;
         }
-      } catch {
-        // stick to fallback
+
+        // discover distinct terms & years
+        const distinctTerms = Array.from(new Set(normalized.map((r) => r.term))).sort(sortTerms);
+        const distinctYears = Array.from(new Set(normalized.map((r) => r.academic_year))).sort();
+
+        setTerms(distinctTerms);
+        setYears(distinctYears);
+
+        // default selection: first term & first year (if available)
+        const defaultTerm = distinctTerms[0] || null;
+        const defaultYear = distinctYears[0] || null;
+
+        setSelectedTerm(defaultTerm);
+        setSelectedYear(defaultYear);
+
         setNotice({
-          type: "warning",
-          text: "Could not load exams from server. Showing sample data.",
+          type: "success",
+          text: `Loaded ${normalized.length} marks across ${
+            distinctTerms.length
+          } term(s).`,
+        });
+      } catch {
+        setNotice({
+          type: "danger",
+          text: "Could not load marks from server.",
         });
       } finally {
         setLoading(false);
       }
     };
-    fetchExams();
+
+    fetchAllMarks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [student?.id]);
 
-  // fetch marks whenever selectedExam changes (try API, fallback to sample)
+  // fetch marks when selection changes (server-filtered for accuracy)
   useEffect(() => {
-    const fetchMarks = async () => {
-      if (!selectedExam) return;
+    const fetchFilteredMarks = async () => {
       if (!student?.id) return;
-
-      setLoading(true);
-      setNotice({ type: "", text: "" });
+      if (!selectedTerm && !selectedYear) {
+        setMarkList([]);
+        return;
+      }
 
       try {
+        setLoading(true);
+        const qs = new URLSearchParams();
+        if (selectedTerm) qs.append("term", selectedTerm);
+        if (selectedYear) qs.append("academic_year", selectedYear);
+        qs.append("_", Date.now().toString());
+
         const res = await fetch(
-          `http://localhost:5001/api/marks/student/${student.id}?examUuid=${encodeURIComponent(
-            selectedExam.uuid
-          )}&_=${Date.now()}`
+          `http://localhost:5001/api/marks/student/${student.id}?${qs.toString()}`
         );
+
         if (res.ok) {
           const data = await res.json();
           const list = Array.isArray(data) ? data : data?.data || [];
-          if (list.length) {
-            // normalize keys: subject_name/marks -> subjectName/markValue
-            const normalized = list.map((m) => ({
-              subjectName: m.subjectName || m.subject_name || m.subject || "Subject",
-              markValue: Number(m.markValue ?? m.marks ?? 0),
-            }));
-            setMarkObj(normalized);
+          const normalized = list.map((m) => ({
+            subjectName: m.subjectName || m.subject_name || m.subject || "Subject",
+            markValue: Number(m.markValue ?? m.marks ?? m.mark ?? 0),
+            term: m.term || "Unknown Term",
+            academic_year: m.academic_year || "N/A",
+          }));
+          setMarkList(normalized);
+          if (!normalized.length) {
+            setNotice({
+              type: "warning",
+              text: "No marks found for the selected term/year.",
+            });
+          } else {
             setNotice({
               type: "success",
-              text: `Marks loaded for ${student?.name || "Student"} (ID: ${student?.id}).`,
-            });
-          } else {
-            // no marks for this exam -> empty list
-            setMarkObj([]);
-            setNotice({
-              type: "warning",
-              text: "No marks found for the selected exam.",
+              text: `Loaded ${normalized.length} marks for ${selectedTerm}${
+                selectedYear ? ` • ${selectedYear}` : ""
+              }.`,
             });
           }
         } else {
-          // server error -> fallback
-          const fb = fallbackMarks[selectedExam.uuid] || [];
-          setMarkObj(fb);
-          if (!fb.length) {
-            setNotice({
-              type: "danger",
-              text:
-                "Failed to load marks from server and no fallback data available.",
-            });
-          } else {
-            setNotice({
-              type: "warning",
-              text:
-                "Could not load marks from server. Showing sample data for this exam.",
-            });
-          }
-        }
-      } catch {
-        const fb = fallbackMarks[selectedExam.uuid] || [];
-        setMarkObj(fb);
-        if (!fb.length) {
-          setNotice({
-            type: "danger",
-            text:
-              "Network error loading marks and no fallback data available.",
-          });
-        } else {
+          // server error -> fall back to client-filter of allMarks
+          const clientFiltered = allMarks.filter(
+            (r) =>
+              (!selectedTerm || r.term === selectedTerm) &&
+              (!selectedYear || r.academic_year === selectedYear)
+          );
+          setMarkList(clientFiltered);
           setNotice({
             type: "warning",
             text:
-              "Network error. Showing sample data for this exam.",
+              "Server filter failed. Showing locally filtered marks from previously loaded data.",
           });
         }
+      } catch {
+        // network error -> client-filter
+        const clientFiltered = allMarks.filter(
+          (r) =>
+            (!selectedTerm || r.term === selectedTerm) &&
+            (!selectedYear || r.academic_year === selectedYear)
+        );
+        setMarkList(clientFiltered);
+        setNotice({
+          type: "warning",
+          text:
+            "Network error. Showing locally filtered marks from previously loaded data.",
+        });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMarks();
+    fetchFilteredMarks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedExam?.uuid, student?.id]);
+  }, [selectedTerm, selectedYear, student?.id]);
 
-  const handleExamSelect = (exam) => setSelectedExam(exam);
+  const handleTermSelect = (term) => setSelectedTerm(term);
+  const handleYearSelect = (year) => setSelectedYear(year);
 
   // summary
-  const totalMarks = markObj.reduce((sum, m) => sum + Number(m.markValue || 0), 0);
-  const avgMarks = markObj.length ? (totalMarks / markObj.length).toFixed(1) : "0.0";
+  const totalMarks = markList.reduce((sum, m) => sum + Number(m.markValue || 0), 0);
+  const avgMarks = markList.length ? (totalMarks / markList.length).toFixed(1) : "0.0";
 
   const chartData = {
-    labels: markObj.map((item) => item.subjectName),
+    labels: markList.map((item) => item.subjectName),
     datasets: [
       {
         label: "Marks (%)",
-        data: markObj.map((item) => Number(item.markValue || 0)),
+        data: markList.map((item) => Number(item.markValue || 0)),
         backgroundColor: [
           "rgba(54, 162, 235, 0.7)",
           "rgba(75, 192, 192, 0.7)",
@@ -275,7 +302,11 @@ const StudentDashboard = () => {
       },
       title: {
         display: true,
-        text: "Subject Performance",
+        text: selectedTerm
+          ? `Subject Performance — ${selectedTerm}${
+              selectedYear ? ` • ${selectedYear}` : ""
+            }`
+          : "Subject Performance",
         font: { size: 18 },
       },
       tooltip: { intersect: false },
@@ -305,10 +336,10 @@ const StudentDashboard = () => {
         </Row>
       )}
 
-      {/* Logged-in Student summary */}
+      {/* Logged-in Student summary + selectors */}
       <Row className="mb-4">
         <Col>
-          <div className="d-flex justify-content-between align-items-center p-3 bg-white rounded shadow-sm">
+          <div className="d-flex flex-wrap gap-3 justify-content-between align-items-center p-3 bg-white rounded shadow-sm">
             <div>
               <h5 className="mb-1">
                 {student ? (
@@ -326,25 +357,59 @@ const StudentDashboard = () => {
               </p>
             </div>
 
-            {/* Exam selector */}
-            <div className="d-flex align-items-center">
-              <span className="me-3 fw-bold text-dark">Select Exam:</span>
-              <Dropdown>
-                <Dropdown.Toggle variant="primary" id="dropdown-basic" className="px-4">
-                  {selectedExam?.examName || "—"}
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  {exams.map((exam) => (
-                    <Dropdown.Item
-                      key={exam.uuid}
-                      onClick={() => handleExamSelect(exam)}
-                      className={selectedExam?.uuid === exam.uuid ? "fw-bold" : ""}
-                    >
-                      {exam.examName}
+            {/* Term & Year selectors */}
+            <div className="d-flex align-items-center flex-wrap gap-3">
+              <div className="d-flex align-items-center">
+                <span className="me-2 fw-bold text-dark">Select Term:</span>
+                <Dropdown>
+                  <Dropdown.Toggle variant="primary" id="dropdown-term" className="px-4">
+                    {selectedTerm || "—"}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    {terms.length ? (
+                      terms.map((t) => (
+                        <Dropdown.Item
+                          key={t}
+                          onClick={() => handleTermSelect(t)}
+                          className={selectedTerm === t ? "fw-bold" : ""}
+                        >
+                          {t}
+                        </Dropdown.Item>
+                      ))
+                    ) : (
+                      <Dropdown.Item disabled>No terms</Dropdown.Item>
+                    )}
+                  </Dropdown.Menu>
+                </Dropdown>
+              </div>
+
+              <div className="d-flex align-items-center">
+                <span className="me-2 fw-bold text-dark">Academic Year:</span>
+                <Dropdown>
+                  <Dropdown.Toggle variant="outline-secondary" id="dropdown-year" className="px-4">
+                    {selectedYear || "All"}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    {years.length ? (
+                      years.map((y) => (
+                        <Dropdown.Item
+                          key={y}
+                          onClick={() => handleYearSelect(y)}
+                          className={selectedYear === y ? "fw-bold" : ""}
+                        >
+                          {y}
+                        </Dropdown.Item>
+                      ))
+                    ) : (
+                      <Dropdown.Item disabled>No years</Dropdown.Item>
+                    )}
+                    <Dropdown.Divider />
+                    <Dropdown.Item onClick={() => handleYearSelect(null)}>
+                      All Years
                     </Dropdown.Item>
-                  ))}
-                </Dropdown.Menu>
-              </Dropdown>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </div>
             </div>
           </div>
         </Col>
@@ -414,14 +479,27 @@ const StudentDashboard = () => {
                 <Card.Header className="bg-primary text-white py-3">
                   <h2 className="h6 mb-0">
                     <i className="fas fa-list-alt me-2"></i>
-                    Marks Breakdown — {selectedExam?.examName}
+                    Marks Breakdown — {selectedTerm || "—"}
+                    {selectedYear ? ` • ${selectedYear}` : ""}
                   </h2>
                 </Card.Header>
                 <Card.Body className="p-3">
-                  {markObj.length ? (
-                    markObj.map((m, idx) => <MarkCard key={idx} marks={m} />)
+                  {markList.length ? (
+                    markList.map((m, idx) => <MarkCard key={idx} marks={m} />)
                   ) : (
-                    <p className="text-muted mb-0">No marks to display.</p>
+                    <div className="d-flex flex-column align-items-center py-4 text-muted">
+                      <p className="mb-2">No marks to display for this selection.</p>
+                      <Button
+                        size="sm"
+                        variant="outline-secondary"
+                        onClick={() => {
+                          setSelectedTerm(terms[0] || null);
+                          setSelectedYear(years[0] || null);
+                        }}
+                      >
+                        Reset selection
+                      </Button>
+                    </div>
                   )}
                 </Card.Body>
               </Card>
