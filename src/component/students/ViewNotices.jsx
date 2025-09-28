@@ -14,10 +14,10 @@ const ViewNotices = () => {
 
   // Filter notices based on selected audience
   const filteredNotices = notices.filter((notice) => {
-    // Always ignore teacher-only notices
+    
     if (notice.permission === "Teacher") return false;
 
-    // Apply selected filter
+    
     if (filterAudience === "All") {
       return notice.permission === "Student" || notice.permission === "Both" || notice.permission === "Lost & Found";
     }

@@ -25,7 +25,7 @@ const TeacherLeaveForm = () => {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
-  // 1) Load teachers/classes + preselect logged-in teacher (if available)
+  
   useEffect(() => {
     (async () => {
       try {
@@ -53,7 +53,7 @@ const TeacherLeaveForm = () => {
         } catch {}
       } catch (err) {
         console.error("Failed to fetch teachers or classes:", err);
-        setMessage("❌ Failed to load data");
+        setMessage("Failed to load data");
       } finally {
         setLoading(false);
       }
@@ -105,15 +105,15 @@ const TeacherLeaveForm = () => {
         sessionStorage.getItem("token");
 
       if (!token) {
-        setMessage("❌ You are not logged in.");
+        setMessage("You are not logged in.");
         setLoading(false);
         return;
       }
 
       const payload = {
-        teacher_id: formData.teacherId,       // used if role=admin; ignored if role=teacher
-        name: formData.name,                  // optional (backend can derive)
-        class_assigned: formData.classId,     // optional (backend can derive)
+        teacher_id: formData.teacherId,       
+        name: formData.name,                  
+        class_assigned: formData.classId,     
         leave_type: formData.leaveType,
         start_date: formData.startDate,
         end_date: formData.endDate,
@@ -126,7 +126,7 @@ const TeacherLeaveForm = () => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // <-- REQUIRED
+            Authorization: `Bearer ${token}`, 
           },
         }
       );
@@ -144,7 +144,7 @@ const TeacherLeaveForm = () => {
       }));
     } catch (err) {
       console.error(err);
-      const apiMsg = err?.response?.data?.error || "❌ Failed to submit leave request.";
+      const apiMsg = err?.response?.data?.error || "Failed to submit leave request.";
       setMessage(apiMsg);
     } finally {
       setLoading(false);

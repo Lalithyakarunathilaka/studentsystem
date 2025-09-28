@@ -17,12 +17,12 @@ const TeacherAdd = () => {
   const [errors, setErrors] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Fetch teachers only
+  // Fetch teachers 
   const fetchUsers = async () => {
     try {
       const response = await fetch("http://localhost:5001/api/users/get");
       const data = await response.json();
-      setUsers(data.filter((u) => u.role === "teacher")); // filter only teachers
+      setUsers(data.filter((u) => u.role === "teacher")); 
     } catch (err) {
       console.error("Error fetching teachers:", err);
     }

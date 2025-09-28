@@ -10,18 +10,18 @@ import Button from "react-bootstrap/Button";
 import MarkCard from "../MarkCard";
 
 const Marks = () => {
-  const [allMarks, setAllMarks] = useState([]); // all rows from API
+  const [allMarks, setAllMarks] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [statusMsg, setStatusMsg] = useState({ type: "", text: "" });
 
-  // filters
+
   const [terms, setTerms] = useState([]);
   const [years, setYears] = useState([]);
-  const [selectedTerm, setSelectedTerm] = useState(null); // null = All Terms
-  const [selectedYear, setSelectedYear] = useState(null); // null = All Years
+  const [selectedTerm, setSelectedTerm] = useState(null); 
+  const [selectedYear, setSelectedYear] = useState(null); 
 
-  // stable term ordering
+ 
   const TERM_ORDER = {
     "First Term": 1,
     "Second Term": 2,
@@ -71,14 +71,14 @@ const Marks = () => {
 
         setAllMarks(normalized);
 
-        // distinct filters
+        
         const distinctTerms = Array.from(new Set(normalized.map((r) => r.term))).sort(sortTerms);
         const distinctYears = Array.from(new Set(normalized.map((r) => r.academicYear))).sort();
 
         setTerms(distinctTerms);
         setYears(distinctYears);
 
-        // sensible defaults
+       
         setSelectedTerm(distinctTerms[0] ?? null);
         setSelectedYear(distinctYears[0] ?? null);
 
@@ -100,7 +100,7 @@ const Marks = () => {
     fetchMarks();
   }, []);
 
-  // filtered list shown on page
+ 
   const markObj = useMemo(() => {
     return allMarks.filter(
       (r) =>
@@ -109,7 +109,7 @@ const Marks = () => {
     );
   }, [allMarks, selectedTerm, selectedYear]);
 
-  // summary based on filtered list
+  
   const summary = useMemo(() => {
     const excellent = markObj.filter((m) => Number(m.markValue) >= 75).length;
     const good = markObj.filter((m) => Number(m.markValue) >= 50 && Number(m.markValue) < 75).length;

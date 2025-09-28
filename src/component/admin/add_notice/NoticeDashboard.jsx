@@ -63,8 +63,8 @@ const NoticeDashboard = () => {
                 <h3 className="notice-title">{notice.title}</h3>
                 <p className="notice-content">{notice.description}</p> {/* Fixed */}
                 <p className="notice-date">
-                  {notice.date
-                    ? new Date(notice.date).toLocaleDateString()
+                  {notice.created_at
+                    ? new Date(notice.created_at).toLocaleDateString()
                     : "No date"}
                 </p>
               </div>

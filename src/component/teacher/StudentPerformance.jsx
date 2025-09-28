@@ -11,7 +11,7 @@ import {
   Legend,
 } from "chart.js";
 
-// ✅ Register all required chart elements at once
+
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 const getTeacherToken = () => localStorage.getItem("teacherToken");
@@ -27,7 +27,7 @@ const StudentPerformance = () => {
   const [term, setTerm] = useState("First Term");
   const [academicYear, setAcademicYear] = useState("2024-2025");
 
-  // ✅ Fetch support-needed data
+  // Fetch support-needed data
   const fetchPerformanceData = async (token, t, yr) => {
     const url = new URL("http://localhost:5001/api/teacher/my-class-data");
     url.searchParams.set("term", t);
@@ -39,7 +39,7 @@ const StudentPerformance = () => {
     }
     const data = await res.json();
 
-    // Now call support-needed API
+    //call support-needed API
     const supportUrl = new URL(`http://localhost:5001/api/marks/support-needed/${data.class_id}`);
     supportUrl.searchParams.set("term", t);
     supportUrl.searchParams.set("academic_year", yr);
@@ -79,7 +79,7 @@ const StudentPerformance = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <h2>📊 Student Performance — {classMeta.name || "No class"}</h2>
+      <h2>Student Performance — {classMeta.name || "No class"}</h2>
 
       {/* Filters */}
       <div
@@ -146,7 +146,7 @@ const StudentPerformance = () => {
             background: "#fff4f4",
           }}
         >
-          <h3>⚠️ Students Needing Extra Support</h3>
+          <h3>Students Needing Extra Support</h3>
           <ul>
             {supportNeeded.map((s) => (
               <li key={s.student_id}>

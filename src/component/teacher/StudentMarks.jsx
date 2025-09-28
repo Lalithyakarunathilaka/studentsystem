@@ -13,8 +13,8 @@ const StudentMarks = () => {
       if (!token) return;
 
       try {
-        const term = "First Term"; // Or get from state/props
-        const academicYear = "2024-2025"; // Or from state
+        const term = "First Term"; 
+        const academicYear = "2024-2025"; 
         const res = await fetch(
           `http://localhost:5001/api/marks/student/${studentId}?term=${term}&academic_year=${academicYear}`,
           { headers: { Authorization: `Bearer ${token}` } }

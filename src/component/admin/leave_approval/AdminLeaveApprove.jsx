@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 
 function getToken() {
-  // try a few keys so it works with your existing storage
+  
   return (
     localStorage.getItem("adminToken") ||
     localStorage.getItem("teacherToken") ||
@@ -16,13 +16,12 @@ function getToken() {
 
 const AdminLeaveApprove = () => {
   const [leaves, setLeaves] = useState([]);
-  const [comments, setComments] = useState({}); // id -> text
+  const [comments, setComments] = useState({}); 
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState({ type: "", text: "" });
 
   useEffect(() => {
     fetchLeaveRequests();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchLeaveRequests() {
@@ -80,7 +79,7 @@ const AdminLeaveApprove = () => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ include token
+          Authorization: `Bearer ${token}`, 
         },
         body: JSON.stringify({ status: nextStatus, admin_comment: adminComment }),
       });
@@ -119,7 +118,7 @@ const AdminLeaveApprove = () => {
 
   return (
     <div className="container mt-4">
-      <h3>Teacher Leave Requests (Admin)</h3>
+      <h3>Teacher Leaves Approval</h3>
 
       {!!status.text && (
         <div
@@ -144,7 +143,7 @@ const AdminLeaveApprove = () => {
                 <th>Leave Type</th>
                 <th>Dates</th>
                 <th>Reason</th>
-                <th>Document</th>
+                {/* <th>Document</th> */}
                 <th>Status</th>
                 <th>Admin Comment</th>
                 <th>Action</th>
@@ -162,7 +161,7 @@ const AdminLeaveApprove = () => {
                     {new Date(leave.end_date).toLocaleDateString()}
                   </td>
                   <td>{leave.reason}</td>
-                  <td>
+                  {/* <td>
                     {leave.document ? (
                       <a
                         href={`http://localhost:5001/uploads/${leave.document}`}
@@ -175,7 +174,7 @@ const AdminLeaveApprove = () => {
                     ) : (
                       "No Document"
                     )}
-                  </td>
+                  </td> */}
                   <td>
                     <span
                       className={`badge ${

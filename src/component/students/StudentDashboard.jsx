@@ -21,7 +21,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend, Title);
 
-// ---------- helpers ----------
 const readStudent = () => {
   try {
     const raw = localStorage.getItem("student");
@@ -35,7 +34,7 @@ const readFlash = () => {
     const raw = sessionStorage.getItem("loginFlash");
     if (!raw) return "";
     const obj = JSON.parse(raw);
-    sessionStorage.removeItem("loginFlash"); // one-time
+    sessionStorage.removeItem("loginFlash"); 
     return obj?.text || "";
   } catch {
     return "";
@@ -58,7 +57,7 @@ const sortTerms = (a, b) => {
   return a.localeCompare(b);
 };
 
-// ---------- small Mark card ----------
+// Mark card 
 const MarkCard = ({ marks }) => {
   return (
     <Card className="mb-3 shadow-sm border-0">
@@ -82,25 +81,25 @@ const MarkCard = ({ marks }) => {
 };
 
 const StudentDashboard = () => {
-  // --- logged-in student + flash welcome ---
+  
   const student = useMemo(() => readStudent(), []);
   const [flash, setFlash] = useState("");
 
-  // --- state ---
+  
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState({ type: "", text: "" });
 
-  // raw marks (all terms) loaded initially to discover available terms/years
+  
   const [allMarks, setAllMarks] = useState([]);
-  const [terms, setTerms] = useState([]); // [{term, academic_year}] distinct combos
-  const [years, setYears] = useState([]); // ["2024-2025", ...]
+  const [terms, setTerms] = useState([]); 
+  const [years, setYears] = useState([]); 
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [selectedYear, setSelectedYear] = useState(null);
 
-  // marks shown for current selection
+ 
   const [markList, setMarkList] = useState([]);
 
-  // one-time flash + initial fetch of ALL marks (no filters)
+ 
   useEffect(() => {
     setFlash(readFlash());
 
@@ -114,7 +113,7 @@ const StudentDashboard = () => {
       }
       try {
         setLoading(true);
-        // Note: no term/year filters = backend returns all stored rows for the student
+       
         const res = await fetch(
           `http://localhost:5001/api/marks/student/${student.id}?_=${Date.now()}`
         );
@@ -122,7 +121,7 @@ const StudentDashboard = () => {
         const data = await res.json();
         const list = Array.isArray(data) ? data : data?.data || [];
 
-        // normalize & keep a raw copy
+        
         const normalized = list.map((m) => ({
           subjectName: m.subjectName || m.subject_name || m.subject || "Subject",
           markValue: Number(m.markValue ?? m.marks ?? m.mark ?? 0),
@@ -145,14 +144,14 @@ const StudentDashboard = () => {
           return;
         }
 
-        // discover distinct terms & years
+ 
         const distinctTerms = Array.from(new Set(normalized.map((r) => r.term))).sort(sortTerms);
         const distinctYears = Array.from(new Set(normalized.map((r) => r.academic_year))).sort();
 
         setTerms(distinctTerms);
         setYears(distinctYears);
 
-        // default selection: first term & first year (if available)
+       
         const defaultTerm = distinctTerms[0] || null;
         const defaultYear = distinctYears[0] || null;
 
@@ -176,10 +175,10 @@ const StudentDashboard = () => {
     };
 
     fetchAllMarks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [student?.id]);
 
-  // fetch marks when selection changes (server-filtered for accuracy)
+  // fetch marks 
   useEffect(() => {
     const fetchFilteredMarks = async () => {
       if (!student?.id) return;
@@ -223,7 +222,7 @@ const StudentDashboard = () => {
             });
           }
         } else {
-          // server error -> fall back to client-filter of allMarks
+          
           const clientFiltered = allMarks.filter(
             (r) =>
               (!selectedTerm || r.term === selectedTerm) &&
@@ -237,7 +236,7 @@ const StudentDashboard = () => {
           });
         }
       } catch {
-        // network error -> client-filter
+       
         const clientFiltered = allMarks.filter(
           (r) =>
             (!selectedTerm || r.term === selectedTerm) &&
@@ -255,13 +254,13 @@ const StudentDashboard = () => {
     };
 
     fetchFilteredMarks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [selectedTerm, selectedYear, student?.id]);
 
   const handleTermSelect = (term) => setSelectedTerm(term);
   const handleYearSelect = (year) => setSelectedYear(year);
 
-  // summary
+ 
   const totalMarks = markList.reduce((sum, m) => sum + Number(m.markValue || 0), 0);
   const avgMarks = markList.length ? (totalMarks / markList.length).toFixed(1) : "0.0";
 

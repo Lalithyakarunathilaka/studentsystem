@@ -1,4 +1,4 @@
-// src/component/teacher/TeacherDashboard.jsx
+// TeacherDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { Bar, Pie } from "react-chartjs-2";
 import {
@@ -73,16 +73,16 @@ const TeacherDashboard = () => {
       }
       setLoading(true);
       try {
-        // 1) profile
+        // profile
         const profile = await fetchTeacherProfile(token);
         console.log("DEBUG profile:", profile);
         setTeacher(profile);
 
-        // 2) classes (get the assigned class)
+        // classes (get the assigned class)
         const classesResp = await fetchMyClasses(token);
         console.log("DEBUG classesResp:", classesResp);
         const classes = classesResp.classes || [];
-        // choose the first class by default — adjust if you need a different rule
+        
         const chosen = classes.length > 0 ? classes[0] : null;
         if (!chosen) {
           setClassMeta({});
@@ -93,7 +93,7 @@ const TeacherDashboard = () => {
         }
         setClassMeta({ id: chosen.id, name: chosen.name });
 
-        // 3) support-needed uses class id
+        // support-needed uses class id
         const support = await fetchSupportNeeded(token, chosen.id, term, academicYear);
         setStudents(support.students || []);
         setSupportNeeded(support.supportNeeded || []);
