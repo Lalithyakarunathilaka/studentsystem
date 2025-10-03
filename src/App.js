@@ -44,6 +44,7 @@ import StudentPerformance from "./component/teacher/StudentPerformance.jsx";
 import StudentMarks from "./component/teacher/StudentMarks.jsx";
 import MessageBoard from "./component/students/MessageBoard.jsx";
 import IndividualPerformance from "./component/students/IndividualPerformance.jsx";
+import AdminTeacherRetirementBoard from "./component/admin/AdminTeacherRetirementBoard.jsx";
 
 // import AdminNoticeBoard from "./component/Notice/AdminNoticeBoard";
 
@@ -71,6 +72,7 @@ function App() {
             <Route path="add-subjects" element={<AddSubjects />} />
             <Route path="add-notice" element={<AddNotice />} />
             <Route path="list-notice" element={<NoticeDashboard />} />
+            <Route path="retirement" element={<AdminTeacherRetirementBoard />} />
             <Route path="leave-approval" element={<AdminLeaveApprove />} />
             <Route path="analysis" element={<StudentAnalysis />} />
             <Route path="home" element={<Home />} />

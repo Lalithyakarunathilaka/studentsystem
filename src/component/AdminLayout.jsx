@@ -134,6 +134,10 @@ const AdminLayout = () => {
               Performance Analysis
             </Link>
           </li>
+          <li className="nav-item mb-4">
+            <Link to="/admin/retirement" className="nav-link text-white"> Retirement Board</Link>
+          </li>
+
           <li className="nav-item mb-3">
             <Link to="/admin/leave-approval" className="nav-link text-white">
               Leave Approval
