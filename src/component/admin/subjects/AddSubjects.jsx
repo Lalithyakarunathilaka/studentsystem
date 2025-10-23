@@ -6,21 +6,21 @@ const AddSubjects = () => {
 
   const [subjectName, setSubjectName] = useState("");
   const [grade, setGrade] = useState("");
-  const [subjects, setSubjects] = useState([]);
+  const [subjects, setSubjects] = useState([]); // All subjects from DB
   const [loader, setLoader] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  const grades = Array.from({ length: 13 }, (_, i) => i + 1); // 1-13
+  const grades = Array.from({ length: 13 }, (_, i) => i + 1); // Grades 1-13
 
-  // Fetch subjects
+  // Fetch all subjects once
   const fetchSubjects = async () => {
     try {
       const res = await fetch("http://localhost:5001/api/subjects/get-subjects");
       if (!res.ok) throw new Error("Failed to fetch subjects");
       const data = await res.json();
-      setSubjects(data);
+      setSubjects(data || []);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching subjects:", err);
     }
   };
 
@@ -34,9 +34,25 @@ const AddSubjects = () => {
     setEditingId(null);
   };
 
+  // Submit logic
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoader(true);
+
+    const cleanName = subjectName.trim().replace(/\s+/g, " ");
+
+    // Check for duplicates (same name + grade)
+    const exists = subjects.some(
+      (s) =>
+        s.name.toLowerCase() === cleanName.toLowerCase() &&
+        String(s.grade) === String(grade)
+    );
+
+    if (exists && !editingId) {
+      alert("This subject already exists for the selected grade!");
+      setLoader(false);
+      return;
+    }
 
     const url = editingId
       ? `http://localhost:5001/api/subjects/update-subject/${editingId}`
@@ -47,7 +63,7 @@ const AddSubjects = () => {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: subjectName, grade }),
+        body: JSON.stringify({ name: cleanName, grade }),
       });
 
       const data = await res.json();
@@ -59,7 +75,7 @@ const AddSubjects = () => {
         alert(data.error || "Failed to process subject");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error adding/updating subject:", err);
       alert("Server error");
     } finally {
       setLoader(false);
@@ -83,6 +99,9 @@ const AddSubjects = () => {
       if (res.ok) {
         alert("Deleted successfully!");
         fetchSubjects();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete");
       }
     } catch (err) {
       console.error(err);
@@ -90,29 +109,56 @@ const AddSubjects = () => {
     }
   };
 
+  // Unique subject names for datalist
+  const uniqueNames = Array.from(new Set(subjects.map((s) => s.name.trim()))).sort();
+
   return (
-    <div
-      className="d-flex flex-column justify-content-start align-items-center"
-      style={{ minHeight: "100vh", backgroundColor: "#f8f9fa", padding: "30px" }}
-    >
-      {/* Add / Edit Form */}
-      <div className="p-4 bg-white shadow rounded mb-4" style={{ width: "500px" }}>
-        <h2 className="text-center mb-4">
-          {editingId ? "Edit Subject" : "Add Subject"}
+    <div style={{ maxWidth: 600, margin: "0 auto",padding: "20px 16px 40px",}}>
+      {/* Top: Form card */}
+      <div
+        style={{
+          background: "#fff",
+          border: "1px solid #e5e7eb",
+          borderRadius: 12,
+          padding: 50,
+          boxShadow: "0 1px 2px rgba(16,24,40,.06)",
+          marginBottom: 28,
+        }}
+      >
+        <h2 style={{ margin: "0 0 8px" }}>
+          {editingId ? "Edit Subject" : "Create Subjects"}
         </h2>
+        <p style={{ margin: "0 0 16px", color: "#6b7280" }}>
+          Enter details to add a new subject or assign it to another grade.
+        </p>
+
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label>Subject Name</label>
+          {/* Subject Field */}
+          <div className="form-group mb-3" style={{ marginBottom: 12 }}>
+            <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>
+              Subject Name
+            </label>
             <input
+              list="subject-options"
               type="text"
               value={subjectName}
-              onChange={(e) => setSubjectName(e.target.value)}
+              onChange={(e) => setSubjectName(e.target.value.replace(/\s+/g, " "))}
               className="form-control"
+              placeholder="Type or select a subject"
               required
             />
+            <datalist id="subject-options">
+              {uniqueNames.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
           </div>
-          <div className="mb-3">
-            <label>Grade</label>
+
+          {/* Grade Selector */}
+          <div className="form-group mb-3" style={{ marginBottom: 12 }}>
+            <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>
+              Grade
+            </label>
             <select
               value={grade}
               onChange={(e) => setGrade(e.target.value)}
@@ -122,23 +168,15 @@ const AddSubjects = () => {
               <option value="">Select grade</option>
               {grades.map((g) => (
                 <option key={g} value={g}>
-                  {g}
+                  Grade {g}
                 </option>
               ))}
             </select>
           </div>
-          <button
-            type="submit"
-            className="btn btn-primary w-100"
-            disabled={loader}
-          >
-            {loader
-              ? editingId
-                ? "Updating..."
-                : "Adding..."
-              : editingId
-              ? "Update"
-              : "Add"}
+
+          {/* Action Buttons */}
+          <button type="submit" className="btn btn-primary w-100" disabled={loader}>
+            {loader ? (editingId ? "Updating..." : "Adding...") : editingId ? "Update" : "Add"}
           </button>
           {editingId && (
             <button
@@ -152,43 +190,57 @@ const AddSubjects = () => {
         </form>
       </div>
 
-      {/* Subjects List BELOW the form */}
-      <div className="p-4 bg-white shadow rounded" style={{ width: "700px" }}>
-        <h3 className="mb-3">Subjects List</h3>
+      {/* Bottom: Subjects List card */}
+      
+      <div
+        style={{
+          background: "#fff",
+          border: "1px solid #e5e7eb",
+          borderRadius: 12,
+          padding: 20,
+          boxShadow: "0 1px 2px rgba(16,24,40,.06)",
+        }}
+      >
+        <h3 className="mb-3" style={{ marginTop: 0 }}>
+          Subjects List
+        </h3>
+
         {subjects.length === 0 ? (
-          <p>No subjects yet</p>
+          <p style={{ margin: 0 }}>No subjects yet</p>
         ) : (
-          <table className="table table-striped">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Grade</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subjects.map((subj) => (
-                <tr key={subj.id}>
-                  <td>{subj.name}</td>
-                  <td>{subj.grade}</td>
-                  <td>
-                    <button
-                      className="btn btn-sm btn-info me-2"
-                      onClick={() => handleEdit(subj)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => handleDelete(subj.id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
+          <div style={{ overflowX: "auto" }}>
+            <table className="table table-striped" style={{ minWidth: 480 }}>
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Grade</th>
+                  <th style={{ width: 150 }}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {subjects.map((subj) => (
+                  <tr key={subj.id}>
+                    <td>{subj.name}</td>
+                    <td>{subj.grade}</td>
+                    <td>
+                      <button
+                        className="btn btn-sm btn-info me-2"
+                        onClick={() => handleEdit(subj)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleDelete(subj.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
