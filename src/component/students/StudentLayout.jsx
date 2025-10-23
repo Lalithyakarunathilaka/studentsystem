@@ -28,6 +28,9 @@ const StudentLayout = () => {
           <li className="nav-item mb-4">
             <Link to="/student/performance" className="nav-link text-white">My Performance</Link>
           </li>
+          <li className="nav-item mb-4">
+            <Link to="/student/evaluation" className="nav-link text-white">My Notifications</Link>
+          </li>
           
           {/* <li className="nav-item mb-4">
             <Link to="/notice-dashboard" className="nav-link text-white">Add Notices</Link>
@@ -46,7 +49,11 @@ const StudentLayout = () => {
         {/* Header */}
         <nav className="navbar navbar-light bg-light px-3">
           <span className="navbar-brand"></span>
-          <button className="btn btn-outline-danger btn-sm">Logout</button>
+          <button className="btn btn-outline-danger btn-sm">
+          <Link to="/choose-user" className="nav-link text-red">
+              Log Out
+            </Link>
+          </button>
         </nav>
 
         {/* Page content */}

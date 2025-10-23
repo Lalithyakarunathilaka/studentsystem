@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "./AdminUserAdd.css";
 
 const StudentAdd = () => {
@@ -17,12 +17,15 @@ const StudentAdd = () => {
   const [errors, setErrors] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  // NEW: table filter state
+  const [filterClassId, setFilterClassId] = useState(""); // "" = All
+
   // Fetch students
   const fetchUsers = async () => {
     try {
       const response = await fetch("http://localhost:5001/api/users/get");
       const data = await response.json();
-      setUsers(data.filter((u) => u.role === "student"));
+      setUsers(Array.isArray(data) ? data.filter((u) => u.role === "student") : []);
     } catch (err) {
       console.error("Error fetching users:", err);
     }
@@ -33,7 +36,7 @@ const StudentAdd = () => {
     try {
       const response = await fetch("http://localhost:5001/api/classes/get-all");
       const data = await response.json();
-      setClasses(data);
+      setClasses(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching classes:", err);
     }
@@ -43,6 +46,13 @@ const StudentAdd = () => {
     fetchUsers();
     fetchClasses();
   }, []);
+
+  // Derived: filtered users for the table
+  const filteredUsers = useMemo(() => {
+    if (!filterClassId) return users; // All
+    const cidNum = Number(filterClassId);
+    return users.filter((u) => Number(u.class_id) === cidNum);
+  }, [users, filterClassId]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -128,7 +138,7 @@ const StudentAdd = () => {
       );
       if (response.ok) {
         setSuccessMsg("Student deleted successfully!");
-        setUsers(users.filter((u) => u.id !== id));
+        setUsers((prev) => prev.filter((u) => u.id !== id));
       } else {
         setErrors("Failed to delete student");
       }
@@ -192,9 +202,28 @@ const StudentAdd = () => {
         </button>
       </form>
 
-      <br />
+      {/* NEW: Table filter by class */}
+      <div style={{ marginTop: 40, marginBottom: 20, display: "flex", gap: 20, alignItems: "center" }}>
+        <label htmlFor="classFilter"><strong>Filter by Class:</strong></label>
+        <select
+          id="classFilter"
+          value={filterClassId}
+          onChange={(e) => setFilterClassId(e.target.value)}
+        >
+          <option value="">All classes</option>
+          {classes.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        <span style={{ opacity: 0.8 }}>
+          Showing {filteredUsers.length} of {users.length} students
+        </span>
+      </div>
+
       <h3>Registered Students</h3>
-      <br />
+      <br></br>
       <table className="user-table">
         <thead>
           <tr>
@@ -206,8 +235,8 @@ const StudentAdd = () => {
           </tr>
         </thead>
         <tbody>
-          {users.length > 0 ? (
-            users.map((u) => (
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((u) => (
               <tr key={u.id}>
                 <td>{u.full_name}</td>
                 <td>{u.email}</td>
@@ -222,7 +251,7 @@ const StudentAdd = () => {
           ) : (
             <tr>
               <td colSpan="5" style={{ textAlign: "center" }}>
-                No students found
+                No students found{filterClassId ? " for this class" : ""}.
               </td>
             </tr>
           )}

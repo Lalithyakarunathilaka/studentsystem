@@ -1,93 +1,159 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
 import "./StudentAnalysis.css";
 
 const CLASS_COLORS = {
-  "A": "rgba(255, 99, 132, 1)", 
-  "B": "rgba(54, 162, 235, 1)", 
-  "C": "rgba(75, 192, 192, 1)", 
+  A: "rgba(255, 99, 132, 1)",
+  B: "rgba(54, 162, 235, 1)",
+  C: "rgba(75, 192, 192, 1)",
 };
 
 const StudentAnalysis = () => {
+  // sensible defaults so first render works
   const [students, setStudents] = useState([]);
-  const [selectedGrade, setSelectedGrade] = useState(6);
-  const [selectedSubject, setSelectedSubject] = useState("Math");
-  const [selectedTerm, setSelectedTerm] = useState("Term 1");
+  const [selectedGrade, setSelectedGrade] = useState(10); // initialize to a valid grade (change if needed)
+  const [selectedSubject, setSelectedSubject] = useState("Mathematics");
+  const [selectedTerm, setSelectedTerm] = useState("First Term"); // must match DB enum
   const [selectedClass, setSelectedClass] = useState("All");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:5001/api/students")
+    const qs = new URLSearchParams({
+      grade: selectedGrade ? String(selectedGrade) : "",
+      class: selectedClass === "All" ? "" : selectedClass,
+      subject: selectedSubject || "",
+      term: selectedTerm || "",
+      academic_year: "2024-2025",
+    });
+
+    setLoading(true);
+    fetch(`http://localhost:5001/api/overall/students?${qs.toString()}`)
       .then((res) => res.json())
       .then((data) => {
-        setStudents(data); // keep all grades, not just grade 6
+        // normalize to array
+        if (Array.isArray(data)) {
+          setStudents(data);
+        } else if (data && Array.isArray(data.students)) {
+          setStudents(data.students);
+        } else {
+          setStudents([]);
+        }
       })
-      .catch((error) => console.error("Error fetching data:", error));
-  }, []);
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        setStudents([]);
+      })
+      .finally(() => setLoading(false));
+  }, [selectedGrade, selectedSubject, selectedTerm, selectedClass]);
 
-  // Filter students by grade first
-  const gradeStudents = students.filter((s) => s.grade === selectedGrade);
+  // --- derived data with guards ---
+  const { filteredStudents, studentNames, classData } = useMemo(() => {
+    const safeStudents = Array.isArray(students) ? students : [];
 
-  // Then filter by class if not "All"
-  const filteredStudents =
-    selectedClass === "All"
-      ? gradeStudents
-      : gradeStudents.filter((s) => s.className === `${selectedGrade}-${selectedClass}`);
+    // if grade is unset, skip grade filtering
+    const gradeStudents =
+      selectedGrade != null
+        ? safeStudents.filter((s) => Number(s.grade) === Number(selectedGrade))
+        : safeStudents;
 
-  const studentNames = filteredStudents.map((s) => s.name);
-
-  // Build dataset per class
-  const classData = { A: [], B: [], C: [] };
-
-  filteredStudents.forEach((student) => {
-    const subjectMarks = student.marks.find(
-      (m) => m.subject === selectedSubject && m.term === selectedTerm
-    );
-
-    // Extract class letter (A, B, C)
-    const classLetter = student.className.split("-")[1];
-
-    classData[classLetter].push({
-      name: student.name,
-      mark: subjectMarks ? subjectMarks.mark : 0,
-    });
-  });
-
-  const chartData = {
-    labels: studentNames,
-    datasets: Object.keys(CLASS_COLORS)
-      .filter(
-        (classLetter) => selectedClass === "All" || classLetter === selectedClass
-      )
-      .map((classLetter) => ({
-        label: `Grade ${selectedGrade}-${classLetter} - ${selectedSubject} (${selectedTerm})`,
-        data: filteredStudents.map((s) => {
-          const markData = classData[classLetter].find(
-            (student) => student.name === s.name
+    const filtered =
+      selectedClass === "All"
+        ? gradeStudents
+        : gradeStudents.filter(
+            (s) =>
+              s?.className &&
+              `${selectedGrade}-${selectedClass}`.toUpperCase() ===
+                String(s.className).toUpperCase()
           );
-          return markData ? markData.mark : 0;
-        }),
-        borderColor: CLASS_COLORS[classLetter],
-        backgroundColor: CLASS_COLORS[classLetter].replace("1)", "0.5)"),
-      })),
-  };
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    indexAxis: "x",
-    scales: {
-      x: {
-        stacked: true,
-        ticks: { autoSkip: false, maxRotation: 45, minRotation: 20 },
+    const names = filtered.map((s) => s?.name ?? "");
+
+    // Build dataset per class
+    const cd = { A: [], B: [], C: [] };
+
+    filtered.forEach((student) => {
+      const marksArr = Array.isArray(student.marks) ? student.marks : [];
+      const subjectMarks = marksArr.find(
+        (m) =>
+          m?.subject === selectedSubject &&
+          // DB has enums like "First Term" / "Second Term" / "Third Term"
+          m?.term === selectedTerm
+      );
+
+      const cls = String(student?.className || "")
+        .split("-")[1]
+        ?.toUpperCase();
+      if (cls && cd[cls]) {
+        cd[cls].push({
+          name: student?.name ?? "",
+          mark: subjectMarks ? Number(subjectMarks.mark) : 0,
+        });
+      }
+    });
+
+    return { filteredStudents: filtered, studentNames: names, classData: cd };
+  }, [students, selectedGrade, selectedClass, selectedSubject, selectedTerm]);
+
+  // chart data/options
+  const chartData = useMemo(() => {
+    const datasets = Object.keys(CLASS_COLORS)
+      .filter(
+        (classLetter) =>
+          selectedClass === "All" || classLetter === selectedClass
+      )
+      .map((classLetter) => {
+        // map students to marks for this class letter
+        const data = filteredStudents.map((s) => {
+          const found = classData[classLetter].find((st) => st.name === s.name);
+          return found ? found.mark : 0;
+        });
+        return {
+          label: `Grade ${selectedGrade}-${classLetter} • ${selectedSubject} (${selectedTerm})`,
+          data,
+          borderColor: CLASS_COLORS[classLetter],
+          backgroundColor: CLASS_COLORS[classLetter].replace("1)", "0.5)"),
+        };
+      });
+
+    return {
+      labels: studentNames,
+      datasets,
+    };
+  }, [
+    filteredStudents,
+    classData,
+    studentNames,
+    selectedClass,
+    selectedGrade,
+    selectedSubject,
+    selectedTerm,
+  ]);
+
+  const chartOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: "x",
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { autoSkip: false, maxRotation: 45, minRotation: 20 },
+        },
+        y: {
+          beginAtZero: true,
+          stacked: true,
+          title: { display: true, text: "Marks" },
+          suggestedMax: 100,
+        },
       },
-      y: {
-        beginAtZero: true,
-        stacked: true,
-        title: { display: true, text: "Marks" },
+      plugins: {
+        tooltip: { mode: "index", intersect: false },
+        legend: { position: "top" },
       },
-    },
-  };
+    }),
+    []
+  );
 
   return (
     <div className="analysis-container">
@@ -95,30 +161,32 @@ const StudentAnalysis = () => {
 
       <div className="filters">
         {/* Subject Filter */}
+        {/* Subject Filter */}
         <label>Filter by Subject:</label>
         <select
           onChange={(e) => setSelectedSubject(e.target.value)}
           value={selectedSubject}
         >
-          <option value="Math">Math</option>
+          <option value="Mathematics">Mathematics</option>
           <option value="Science">Science</option>
           <option value="English">English</option>
         </select>
 
-        {/* Term Filter */}
+        {/* Term Filter (must match DB enum) */}
         <label>Filter by Term:</label>
         <select
           onChange={(e) => setSelectedTerm(e.target.value)}
           value={selectedTerm}
         >
-          <option value="Term 1">Term 1</option>
-          <option value="Term 2">Term 2</option>
+          <option value="First Term">First Term</option>
+          <option value="Second Term">Second Term</option>
+          <option value="Third Term">Third Term</option>
         </select>
 
         {/* Grade Filter */}
         <label>Filter by Grade:</label>
         <select
-          onChange={(e) => setSelectedGrade(parseInt(e.target.value))}
+          onChange={(e) => setSelectedGrade(Number(e.target.value))}
           value={selectedGrade}
         >
           {Array.from({ length: 13 }, (_, i) => i + 1).map((grade) => (
@@ -143,13 +211,24 @@ const StudentAnalysis = () => {
 
       <div className="chart-card">
         <h3>
-          {selectedSubject} - {selectedTerm} Performance (
+          {selectedSubject} — {selectedTerm} Performance (
           {selectedClass === "All"
-            ? `Grade ${selectedGrade} All Classes`
+            ? `Grade ${selectedGrade} • All Classes`
             : `Grade ${selectedGrade}-${selectedClass}`}
           )
         </h3>
-        <Bar data={chartData} options={chartOptions} />
+
+        {loading ? (
+          <div style={{ padding: 16 }}>Loading…</div>
+        ) : studentNames.length === 0 ? (
+          <div style={{ padding: 16 }}>
+            No students found for the selected filters.
+          </div>
+        ) : (
+          <div style={{ height: 420 }}>
+            <Bar data={chartData} options={chartOptions} />
+          </div>
+        )}
       </div>
     </div>
   );
