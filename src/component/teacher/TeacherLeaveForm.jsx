@@ -246,7 +246,7 @@ const TeacherLeaveForm = () => {
         {/* Reason */}
         <div className="mb-3">
           <label className="form-label">Reason</label>
-          <textarea name="reason" rows="3" value={formData.reason} onChange={handleChange} className="form-control" required />
+          <textarea name="reason" rows="3" value={formData.reason} onChange={handleChange} className="form-control" />
         </div>
 
         <button type="submit" className="btn btn-primary w-100" disabled={loading}>

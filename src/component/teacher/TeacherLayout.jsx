@@ -33,6 +33,9 @@ const TeacherLayout = () => {
           <li className="nav-item mb-4">
             <Link to="/teacher/teacher-notices" className="nav-link text-white"> Notices & Announcements</Link>
           </li>
+          <li className="nav-item mb-4">
+            <Link to="/teacher/intervention" className="nav-link text-white"> Intervention</Link>
+          </li>
 
           {/* Leaves Menu */}
           <li className="nav-item mb-3">
@@ -61,9 +64,23 @@ const TeacherLayout = () => {
         </ul>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-grow-1 bg-light p-4">
-        <Outlet />
+      {/* Main content */}
+      <div className="flex-grow-1">
+        {/* Header */}
+        <nav className="navbar navbar-light bg-light px-3">
+          <span className="navbar-brand"></span>
+          <button className="btn btn-outline-danger btn-sm">
+          <Link to="/choose-user" className="nav-link text-red">
+              Log Out
+            </Link>
+          </button>
+        </nav>
+
+        {/* Page content */}
+        <div className="p-4">
+          <Outlet /> 
+          {/* This renders child admin pages */}
+        </div>
       </div>
     </div>
   );

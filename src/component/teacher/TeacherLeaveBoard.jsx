@@ -1,56 +1,88 @@
 // src/pages/teacher/TeacherLeaveBoard.jsx
 import React, { useEffect, useState } from "react";
 
+const getToken = () =>
+  localStorage.getItem("teacherToken") ||
+  sessionStorage.getItem("teacherToken") ||
+  localStorage.getItem("token") ||
+  sessionStorage.getItem("token");
+
 const TeacherLeaveBoard = () => {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [teacher, setTeacher] = useState(null);
   const [status, setStatus] = useState({ type: "", text: "" });
 
+  // --- Fetch the *current* teacher from the backend (source of truth) ---
   useEffect(() => {
-    // Show who’s logged in (from localStorage only for UI)
-    try {
-      const raw = localStorage.getItem("teacher");
-      setTeacher(raw ? JSON.parse(raw) : null);
-    } catch {
-      setTeacher(null);
-    }
+    const token = getToken();
 
-    const token =
-      localStorage.getItem("teacherToken") ||
-      sessionStorage.getItem("teacherToken") ||
-      localStorage.getItem("token") ||
-      sessionStorage.getItem("token");
-
+    // if no token, stop early
     if (!token) {
       setStatus({ type: "warning", text: "You are not logged in." });
       setLoading(false);
       return;
     }
 
+    let alive = true;
+
     (async () => {
       try {
         setLoading(true);
+
+        // 1) fetch the current teacher profile
+        const meRes = await fetch("http://localhost:5001/api/teacher/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!meRes.ok) throw new Error("Failed to load profile");
+        const me = await meRes.json();
+        if (!alive) return;
+
+        // Normalize the shape we use in UI
+        const normalized = {
+          id: me.id,
+          full_name: me.full_name || me.name, // handle both shapes
+          email: me.email,
+          role: me.role,
+          gender: me.gender,
+        };
+        setTeacher(normalized);
+
+        // keep localStorage in sync so other pages read the correct one
+        try {
+          localStorage.setItem("teacher", JSON.stringify(normalized));
+        } catch {}
+
+        // 2) fetch the teacher's leave requests
         const res = await fetch("http://localhost:5001/api/teacher-leaves/mine", {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error("Failed to fetch leave requests");
         const data = await res.json();
+        if (!alive) return;
+
         setLeaves(Array.isArray(data) ? data : []);
         setStatus({ type: "success", text: "Loaded your leave requests" });
       } catch (err) {
-        console.error("Error fetching leave requests:", err);
-        setStatus({ type: "danger", text: "Error fetching leave requests." });
+        console.error("TeacherLeaveBoard load error:", err);
+        if (!alive) return;
+        setStatus({ type: "danger", text: "Error loading data." });
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     })();
-  }, []);
+
+    return () => {
+      alive = false;
+    };
+  }, []); // run once on mount
 
   const getStatusBadgeClass = (v) =>
-    (v || "Pending") === "Approved" ? "bg-success"
-    : (v || "Pending") === "Rejected" ? "bg-danger"
-    : "bg-warning";
+    (v || "Pending") === "Approved"
+      ? "bg-success"
+      : (v || "Pending") === "Rejected"
+      ? "bg-danger"
+      : "bg-warning";
 
   const formatDate = (s) => (s ? new Date(s).toLocaleDateString() : "—");
 
@@ -66,13 +98,19 @@ const TeacherLeaveBoard = () => {
     );
   }
 
+  const tokenPresent = !!getToken();
+  const displayName = teacher?.full_name || teacher?.name || "Teacher";
+
   return (
     <div className="container mt-4">
       {!!status.text && (
         <div
           className={`alert alert-${
-            status.type === "danger" ? "danger" :
-            status.type === "warning" ? "warning" : "success"
+            status.type === "danger"
+              ? "danger"
+              : status.type === "warning"
+              ? "warning"
+              : "success"
           }`}
         >
           {status.text}
@@ -82,12 +120,14 @@ const TeacherLeaveBoard = () => {
       {/* Header */}
       <div className="alert alert-secondary d-flex justify-content-between align-items-center">
         <div>
-          <strong>Logged in as:</strong>{" "}
-          {teacher?.name || teacher?.full_name || "Teacher"}
+          <strong>Logged in as:</strong> {displayName}
           {teacher?.email && <span className="ms-2">• {teacher.email}</span>}
         </div>
-        {!localStorage.getItem("teacherToken") && (
-          <button className="btn btn-primary btn-sm" onClick={() => (window.location.href = "/teacher/login")}>
+        {!tokenPresent && (
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => (window.location.href = "/teacher/login")}
+          >
             Go to Login
           </button>
         )}
@@ -95,7 +135,10 @@ const TeacherLeaveBoard = () => {
 
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h3>My Leave Requests</h3>
-        <button className="btn btn-primary" onClick={() => (window.location.href = "/teacher/leave")}>
+        <button
+          className="btn btn-primary"
+          onClick={() => (window.location.href = "/teacher/leave")}
+        >
           + New Leave Request
         </button>
       </div>
@@ -135,7 +178,10 @@ const TeacherLeaveBoard = () => {
           <div className="alert alert-info">
             <h5>No leave requests found</h5>
             <p>You haven't submitted any leave requests yet.</p>
-            <button className="btn btn-primary" onClick={() => (window.location.href = "/teacher/leave")}>
+            <button
+              className="btn btn-primary"
+              onClick={() => (window.location.href = "/teacher/leave")}
+            >
               Submit Your First Request
             </button>
           </div>
@@ -163,18 +209,29 @@ const TeacherLeaveBoard = () => {
                     <td>{formatDate(leave.end_date)}</td>
                     <td>
                       {leave.start_date && leave.end_date
-                        ? Math.ceil((new Date(leave.end_date) - new Date(leave.start_date)) / (1000 * 60 * 60 * 24)) + 1
+                        ? Math.ceil(
+                            (new Date(leave.end_date) - new Date(leave.start_date)) /
+                              (1000 * 60 * 60 * 24)
+                          ) + 1
                         : "—"}{" "}
                       {leave.start_date && leave.end_date ? "days" : ""}
                     </td>
                     <td>
-                      <div className="text-truncate" style={{ maxWidth: 400 }} title={leave.reason}>
+                      <div
+                        className="text-truncate"
+                        style={{ maxWidth: 400 }}
+                        title={leave.reason}
+                      >
                         {leave.reason || "—"}
                       </div>
                     </td>
                     <td>
                       {leave.admin_comment ? (
-                        <div className="text-truncate" style={{ maxWidth: 200 }} title={leave.admin_comment}>
+                        <div
+                          className="text-truncate"
+                          style={{ maxWidth: 200 }}
+                          title={leave.admin_comment}
+                        >
                           {leave.admin_comment}
                         </div>
                       ) : (
