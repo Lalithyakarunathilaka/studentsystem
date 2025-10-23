@@ -45,6 +45,9 @@ import StudentMarks from "./component/teacher/StudentMarks.jsx";
 import MessageBoard from "./component/students/MessageBoard.jsx";
 import IndividualPerformance from "./component/students/IndividualPerformance.jsx";
 import AdminTeacherRetirementBoard from "./component/admin/AdminTeacherRetirementBoard.jsx";
+import TeacherInterventionBoard from "./component/teacher/TeacherInterventionBoard.jsx";
+import PerformanceAnalysis from "./component/admin/performance_analysis/PerformanceAnalysis.jsx";
+import StudentInterventions from "./component/students/StudentInterventions.jsx";
 
 // import AdminNoticeBoard from "./component/Notice/AdminNoticeBoard";
 
@@ -74,7 +77,7 @@ function App() {
             <Route path="list-notice" element={<NoticeDashboard />} />
             <Route path="retirement" element={<AdminTeacherRetirementBoard />} />
             <Route path="leave-approval" element={<AdminLeaveApprove />} />
-            <Route path="analysis" element={<StudentAnalysis />} />
+            <Route path="student-performance" element={<PerformanceAnalysis />} />
             <Route path="home" element={<Home />} />
           </Route>
 
@@ -83,12 +86,15 @@ function App() {
             <Route path="marks" element={<Marks />} />
             <Route path="notices" element={<ViewNotices />} />
             <Route path="performance" element={<IndividualPerformance/>}/>
+            <Route path="evaluation" element={<StudentInterventions/>}/>
+            
           </Route>
 
           <Route path="/teacher" element={<TeacherLayout />}>
             <Route path="dashboard" element={<TeacherDashboard />} />
             <Route path="teacher-notices" element={<TeacherNotices />} />
             <Route path="/teacher/marks" element={<TeacherMarksForm />} />
+            <Route path="/teacher/intervention" element={<TeacherInterventionBoard/>} />
             <Route
               path="/teacher/student-marks/:studentId"
               element={<StudentMarks />}
