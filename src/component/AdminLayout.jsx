@@ -128,12 +128,10 @@ const AdminLayout = () => {
               </ul>
             )}
           </li>
-
-          <li className="nav-item mb-3">
-            <Link to="/analysis" className="nav-link text-white">
-              Performance Analysis
-            </Link>
+          <li className="nav-item mb-4">
+            <Link to="/admin/student-performance" className="nav-link text-white"> Students Performance</Link>
           </li>
+        
           <li className="nav-item mb-4">
             <Link to="/admin/retirement" className="nav-link text-white"> Retirement Board</Link>
           </li>
@@ -151,7 +149,11 @@ const AdminLayout = () => {
         {/* Header */}
         <nav className="navbar navbar-light bg-light px-3">
           <span className="navbar-brand"></span>
-          <button className="btn btn-outline-danger btn-sm">Logout</button>
+          <button className="btn btn-outline-danger btn-sm">
+          <Link to="/choose-user" className="nav-link text-red">
+              Log Out
+            </Link>
+          </button>
         </nav>
 
         {/* Page content */}
